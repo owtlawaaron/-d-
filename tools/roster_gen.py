@@ -80,7 +80,8 @@ def build() -> dict:
             "preferences": prefs,
             "friends": friends,
             "rivals": rivals,
-            "loadout": random.choice(LOADOUTS),
+            # プレイヤーは扱いやすい構成に固定する
+            "loadout": LOADOUTS[0] if i == 0 else random.choice(LOADOUTS),
             "appearance": {
                 "hair": random.choice(HAIR),
                 "hairColor": random.choice(HAIR_COLORS),

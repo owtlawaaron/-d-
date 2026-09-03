@@ -83,7 +83,7 @@ gap        = expectedSeat(student) - perceivedValue(student, currentSeat)
 frustration = clamp(
                  gap * personality.prideScale        // 性格による増幅 0.8〜1.4
                + grudgeTotal * 0.35                  // 遺恨
-               + turnsSinceLastWin * 2               // 燻り
+               + turnsSinceLastWin * 3               // 燻り（学期が進むほど教室が荒れる）
                - conductPenalty                      // 素行点が減ると挑戦を控える
                , 0, 100)
 ```

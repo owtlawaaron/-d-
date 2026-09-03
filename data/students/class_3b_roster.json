@@ -24,13 +24,13 @@
         "s10"
       ],
       "loadout": {
-        "primary": "compass_bow",
-        "secondary": "correction_tape"
+        "primary": "chalk_smg",
+        "secondary": "ruler_boomerang"
       },
       "appearance": {
-        "hair": "short",
-        "hairColor": "#2f2318",
-        "skin": "#e8bd96",
+        "hair": "buzz",
+        "hairColor": "#5c4630",
+        "skin": "#f0cba8",
         "height": 1.71
       }
     },
@@ -39,32 +39,33 @@
       "name": "花輪 美琴",
       "playable": false,
       "stats": {
-        "athletics": 6,
-        "nerve": 4,
-        "academics": 5,
-        "charisma": 8,
-        "stamina": 5
+        "athletics": 8,
+        "nerve": 9,
+        "academics": 4,
+        "charisma": 3,
+        "stamina": 6
       },
       "personality": "hothead",
       "preferences": {
-        "window_side": 9,
-        "back_row": 5,
-        "front_row": -8
+        "center_screen": -7,
+        "back_row": 7,
+        "front_row": -9
       },
       "friends": [
-        "s13",
-        "s09"
+        "s22"
       ],
-      "rivals": [],
+      "rivals": [
+        "s00"
+      ],
       "loadout": {
         "primary": "compass_bow",
         "secondary": "correction_tape"
       },
       "appearance": {
-        "hair": "short",
-        "hairColor": "#151515",
-        "skin": "#e8bd96",
-        "height": 1.64
+        "hair": "long",
+        "hairColor": "#5c4630",
+        "skin": "#f0cba8",
+        "height": 1.8
       }
     },
     {
@@ -72,11 +73,81 @@
       "name": "轟 隼人",
       "playable": false,
       "stats": {
-        "athletics": 2,
+        "athletics": 7,
         "nerve": 7,
-        "academics": 8,
-        "charisma": 7,
+        "academics": 2,
+        "charisma": 5,
         "stamina": 8
+      },
+      "personality": "hothead",
+      "preferences": {
+        "back_row": 10,
+        "corner_king": 6,
+        "front_row": -12
+      },
+      "friends": [
+        "s23",
+        "s06"
+      ],
+      "rivals": [],
+      "loadout": {
+        "primary": "chalk_smg",
+        "secondary": "correction_tape"
+      },
+      "appearance": {
+        "hair": "ponytail",
+        "hairColor": "#5c4630",
+        "skin": "#f6d8bd",
+        "height": 1.64
+      }
+    },
+    {
+      "id": "s03",
+      "name": "白鳥 詩織",
+      "playable": false,
+      "stats": {
+        "athletics": 4,
+        "nerve": 6,
+        "academics": 7,
+        "charisma": 4,
+        "stamina": 7
+      },
+      "personality": "hothead",
+      "preferences": {
+        "back_row": 10,
+        "corner_king": 6,
+        "front_row": -12
+      },
+      "friends": [
+        "s24",
+        "s08",
+        "s12"
+      ],
+      "rivals": [
+        "s22",
+        "s26"
+      ],
+      "loadout": {
+        "primary": "eraser_launcher",
+        "secondary": "ruler_boomerang"
+      },
+      "appearance": {
+        "hair": "short",
+        "hairColor": "#4a3524",
+        "skin": "#d9a97f",
+        "height": 1.78
+      }
+    },
+    {
+      "id": "s04",
+      "name": "南雲 健太",
+      "playable": false,
+      "stats": {
+        "athletics": 6,
+        "nerve": 9,
+        "academics": 3,
+        "charisma": 5,
+        "stamina": 5
       },
       "personality": "hothead",
       "preferences": {
@@ -87,90 +158,16 @@
       "friends": [
         "s08"
       ],
-      "rivals": [
-        "s09"
-      ],
+      "rivals": [],
       "loadout": {
-        "primary": "compass_bow",
+        "primary": "chalk_smg",
         "secondary": "ruler_boomerang"
       },
       "appearance": {
-        "hair": "ponytail",
-        "hairColor": "#5c4630",
+        "hair": "spike",
+        "hairColor": "#221a12",
         "skin": "#f0cba8",
-        "height": 1.76
-      }
-    },
-    {
-      "id": "s03",
-      "name": "白鳥 詩織",
-      "playable": false,
-      "stats": {
-        "athletics": 6,
-        "nerve": 7,
-        "academics": 5,
-        "charisma": 10,
-        "stamina": 4
-      },
-      "personality": "hothead",
-      "preferences": {
-        "center_screen": -7,
-        "back_row": 7,
-        "front_row": -9
-      },
-      "friends": [
-        "s05",
-        "s22",
-        "s27"
-      ],
-      "rivals": [
-        "s12"
-      ],
-      "loadout": {
-        "primary": "compass_bow",
-        "secondary": "correction_tape"
-      },
-      "appearance": {
-        "hair": "bob",
-        "hairColor": "#2f2318",
-        "skin": "#e8bd96",
-        "height": 1.56
-      }
-    },
-    {
-      "id": "s04",
-      "name": "南雲 健太",
-      "playable": false,
-      "stats": {
-        "athletics": 10,
-        "nerve": 9,
-        "academics": 6,
-        "charisma": 2,
-        "stamina": 5
-      },
-      "personality": "hothead",
-      "preferences": {
-        "window_side": 9,
-        "back_row": 5,
-        "front_row": -8
-      },
-      "friends": [
-        "s19",
-        "s14",
-        "s26"
-      ],
-      "rivals": [
-        "s03"
-      ],
-      "loadout": {
-        "primary": "compass_bow",
-        "secondary": "ruler_boomerang"
-      },
-      "appearance": {
-        "hair": "bob",
-        "hairColor": "#4a3524",
-        "skin": "#f6d8bd",
-        "height": 1.57
+        "height": 1.49
       }
     },
     {
@@ -178,11 +175,48 @@
       "name": "剣崎 彩香",
       "playable": false,
       "stats": {
-        "athletics": 3,
-        "nerve": 7,
-        "academics": 5,
+        "athletics": 4,
+        "nerve": 3,
+        "academics": 7,
         "charisma": 8,
-        "stamina": 7
+        "stamina": 8
+      },
+      "personality": "calculator",
+      "preferences": {
+        "front_row": 9,
+        "center_screen": 8,
+        "back_row": -6
+      },
+      "friends": [
+        "s19",
+        "s26",
+        "s27"
+      ],
+      "rivals": [
+        "s03",
+        "s24"
+      ],
+      "loadout": {
+        "primary": "compass_bow",
+        "secondary": "ruler_boomerang"
+      },
+      "appearance": {
+        "hair": "long",
+        "hairColor": "#221a12",
+        "skin": "#f0cba8",
+        "height": 1.7
+      }
+    },
+    {
+      "id": "s06",
+      "name": "月島 拓真",
+      "playable": false,
+      "stats": {
+        "athletics": 5,
+        "nerve": 9,
+        "academics": 7,
+        "charisma": 6,
+        "stamina": 4
       },
       "personality": "calculator",
       "preferences": {
@@ -191,11 +225,12 @@
         "door_side": -5
       },
       "friends": [
-        "s01"
+        "s19",
+        "s20"
       ],
       "rivals": [
-        "s16",
-        "s17"
+        "s21",
+        "s03"
       ],
       "loadout": {
         "primary": "eraser_launcher",
@@ -203,46 +238,51 @@
       },
       "appearance": {
         "hair": "buzz",
-        "hairColor": "#2f2318",
-        "skin": "#f6d8bd",
-        "height": 1.53
+        "hairColor": "#151515",
+        "skin": "#e8bd96",
+        "height": 1.79
       }
     },
     {
-      "id": "s06",
-      "name": "月島 拓真",
+      "id": "s07",
+      "name": "鷹野 由紀",
       "playable": false,
       "stats": {
         "athletics": 4,
-        "nerve": 9,
-        "academics": 7,
-        "charisma": 6,
-        "stamina": 4
+        "nerve": 3,
+        "academics": 10,
+        "charisma": 10,
+        "stamina": 5
       },
       "personality": "calculator",
-      "preferences": {},
+      "preferences": {
+        "window_side": 9,
+        "back_row": 5,
+        "front_row": -8
+      },
       "friends": [
-        "s17",
-        "s04"
+        "s25",
+        "s09",
+        "s02"
       ],
       "rivals": [
-        "s00",
-        "s21"
+        "s14",
+        "s11"
       ],
       "loadout": {
-        "primary": "compass_bow",
+        "primary": "eraser_launcher",
         "secondary": "ruler_boomerang"
       },
       "appearance": {
-        "hair": "buzz",
+        "hair": "bob",
         "hairColor": "#221a12",
         "skin": "#d9a97f",
         "height": 1.54
       }
     },
     {
-      "id": "s07",
-      "name": "鷹野 由紀",
+      "id": "s08",
+      "name": "犬飼 翔太",
       "playable": false,
       "stats": {
         "athletics": 4,
@@ -275,8 +315,8 @@
       }
     },
     {
-      "id": "s08",
-      "name": "犬飼 翔太",
+      "id": "s09",
+      "name": "御堂 結衣",
       "playable": false,
       "stats": {
         "athletics": 6,
@@ -310,8 +350,8 @@
       }
     },
     {
-      "id": "s09",
-      "name": "御堂 結衣",
+      "id": "s10",
+      "name": "灰田 大地",
       "playable": false,
       "stats": {
         "athletics": 4,
@@ -344,8 +384,8 @@
       }
     },
     {
-      "id": "s10",
-      "name": "灰田 大地",
+      "id": "s11",
+      "name": "早坂 楓",
       "playable": false,
       "stats": {
         "athletics": 4,
@@ -354,7 +394,7 @@
         "charisma": 5,
         "stamina": 6
       },
-      "personality": "calculator",
+      "personality": "loyal",
       "preferences": {
         "door_side": 8,
         "back_row": 4,
@@ -377,8 +417,8 @@
       }
     },
     {
-      "id": "s11",
-      "name": "早坂 楓",
+      "id": "s12",
+      "name": "十文字 涼介",
       "playable": false,
       "stats": {
         "athletics": 7,
@@ -411,8 +451,8 @@
       }
     },
     {
-      "id": "s12",
-      "name": "十文字 涼介",
+      "id": "s13",
+      "name": "神楽坂 咲良",
       "playable": false,
       "stats": {
         "athletics": 5,
@@ -446,8 +486,8 @@
       }
     },
     {
-      "id": "s13",
-      "name": "神楽坂 咲良",
+      "id": "s14",
+      "name": "有栖 悠真",
       "playable": false,
       "stats": {
         "athletics": 7,
@@ -465,7 +505,7 @@
       "friends": [
         "s29",
         "s10",
-        "s14"
+        "s13"
       ],
       "rivals": [],
       "loadout": {
@@ -480,8 +520,8 @@
       }
     },
     {
-      "id": "s14",
-      "name": "有栖 悠真",
+      "id": "s15",
+      "name": "獅子堂 七海",
       "playable": false,
       "stats": {
         "athletics": 7,
@@ -514,8 +554,8 @@
       }
     },
     {
-      "id": "s15",
-      "name": "獅子堂 七海",
+      "id": "s16",
+      "name": "氷室 航平",
       "playable": false,
       "stats": {
         "athletics": 5,
@@ -548,8 +588,8 @@
       }
     },
     {
-      "id": "s16",
-      "name": "氷室 航平",
+      "id": "s17",
+      "name": "名取 遥",
       "playable": false,
       "stats": {
         "athletics": 5,
@@ -558,7 +598,7 @@
         "charisma": 5,
         "stamina": 4
       },
-      "personality": "loyal",
+      "personality": "pacifist",
       "preferences": {
         "window_side": 9,
         "back_row": 5,
@@ -580,8 +620,8 @@
       }
     },
     {
-      "id": "s17",
-      "name": "名取 遥",
+      "id": "s18",
+      "name": "桐生 蓮",
       "playable": false,
       "stats": {
         "athletics": 7,
@@ -614,8 +654,8 @@
       }
     },
     {
-      "id": "s18",
-      "name": "桐生 蓮",
+      "id": "s19",
+      "name": "赤羽 凛",
       "playable": false,
       "stats": {
         "athletics": 5,
@@ -649,8 +689,8 @@
       }
     },
     {
-      "id": "s19",
-      "name": "赤羽 凛",
+      "id": "s20",
+      "name": "海堂 颯太",
       "playable": false,
       "stats": {
         "athletics": 9,
@@ -683,8 +723,8 @@
       }
     },
     {
-      "id": "s20",
-      "name": "海堂 颯太",
+      "id": "s21",
+      "name": "真中 杏奈",
       "playable": false,
       "stats": {
         "athletics": 8,
@@ -716,8 +756,8 @@
       }
     },
     {
-      "id": "s21",
-      "name": "真中 杏奈",
+      "id": "s22",
+      "name": "黒木 圭吾",
       "playable": false,
       "stats": {
         "athletics": 3,
@@ -748,8 +788,8 @@
       }
     },
     {
-      "id": "s22",
-      "name": "黒木 圭吾",
+      "id": "s23",
+      "name": "美濃部 千夏",
       "playable": false,
       "stats": {
         "athletics": 3,
@@ -758,7 +798,7 @@
         "charisma": 5,
         "stamina": 9
       },
-      "personality": "pacifist",
+      "personality": "tyrant",
       "preferences": {
         "aircon_zone": 11,
         "window_side": 4,
@@ -785,8 +825,8 @@
       }
     },
     {
-      "id": "s23",
-      "name": "美濃部 千夏",
+      "id": "s24",
+      "name": "陣内 駿",
       "playable": false,
       "stats": {
         "athletics": 7,
@@ -821,8 +861,8 @@
       }
     },
     {
-      "id": "s24",
-      "name": "陣内 駿",
+      "id": "s25",
+      "name": "常磐 花音",
       "playable": false,
       "stats": {
         "athletics": 4,
@@ -854,8 +894,8 @@
       }
     },
     {
-      "id": "s25",
-      "name": "常磐 花音",
+      "id": "s26",
+      "name": "羽鳥 陸",
       "playable": false,
       "stats": {
         "athletics": 6,
@@ -864,7 +904,7 @@
         "charisma": 5,
         "stamina": 5
       },
-      "personality": "tyrant",
+      "personality": "avenger",
       "preferences": {
         "window_side": 9,
         "back_row": 5,
@@ -872,7 +912,7 @@
       },
       "friends": [
         "s21",
-        "s26"
+        "s25"
       ],
       "rivals": [],
       "loadout": {
@@ -887,8 +927,8 @@
       }
     },
     {
-      "id": "s26",
-      "name": "羽鳥 陸",
+      "id": "s27",
+      "name": "遠野 真央",
       "playable": false,
       "stats": {
         "athletics": 7,
@@ -919,8 +959,8 @@
       }
     },
     {
-      "id": "s27",
-      "name": "遠野 真央",
+      "id": "s28",
+      "name": "九条 誠",
       "playable": false,
       "stats": {
         "athletics": 6,
@@ -949,8 +989,8 @@
       }
     },
     {
-      "id": "s28",
-      "name": "九条 誠",
+      "id": "s29",
+      "name": "藤堂 小春",
       "playable": false,
       "stats": {
         "athletics": 3,
@@ -980,34 +1020,6 @@
         "hairColor": "#5c4630",
         "skin": "#f6d8bd",
         "height": 1.71
-      }
-    },
-    {
-      "id": "s29",
-      "name": "藤堂 小春",
-      "playable": false,
-      "stats": {
-        "athletics": 4,
-        "nerve": 9,
-        "academics": 2,
-        "charisma": 5,
-        "stamina": 8
-      },
-      "personality": "avenger",
-      "preferences": {},
-      "friends": [
-        "s16"
-      ],
-      "rivals": [],
-      "loadout": {
-        "primary": "compass_bow",
-        "secondary": "correction_tape"
-      },
-      "appearance": {
-        "hair": "spike",
-        "hairColor": "#221a12",
-        "skin": "#d9a97f",
-        "height": 1.65
       }
     }
   ]
