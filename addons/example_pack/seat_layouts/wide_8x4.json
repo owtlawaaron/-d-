@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../schemas/seat_layout.schema.json",
+  "id": "wide_8x4",
+  "name": "特別教室（8列×4行 / 32席・窓が両側）",
+  "cols": 8,
+  "rows": 4,
+  "origin": { "x": -4.55, "z": -1.8 },
+  "pitch": { "x": 1.3, "z": 1.35 },
+  "baseValue": 50,
+  "tagRules": [
+    { "tag": "back_row", "label": "後方席", "when": { "row": { "gte": 2 } }, "weight": 16 },
+    { "tag": "window_side", "label": "窓際（両サイド）", "when": { "col": { "in": [0, 7] } }, "weight": 14 },
+    { "tag": "corner_king", "label": "窓際最後列", "when": { "col": { "eq": 7 }, "row": { "eq": 3 } }, "weight": 12 },
+    { "tag": "front_row", "label": "最前列", "when": { "row": { "eq": 0 } }, "weight": -18 },
+    { "tag": "center_screen", "label": "板書ベストポジション", "when": { "col": { "in": [3, 4] }, "row": { "in": [1, 2] } }, "weight": 5 }
+  ]
+}

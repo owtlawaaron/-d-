@@ -1,0 +1,33 @@
+{
+  "id": "genesis_default",
+  "name": "標準アリーナ生成演出（5秒）",
+  "duration": 5.0,
+  "skippableAfter": 0.6,
+  "tracks": [
+    { "target": "saturation",
+      "keys": [ { "t": 0.0, "v": 1.0 }, { "t": 0.5, "v": 0.15, "ease": "outCubic" },
+                { "t": 4.8, "v": 0.15 }, { "t": 5.0, "v": 1.0, "ease": "inOutCubic" } ] },
+    { "target": "scanZ",
+      "keys": [ { "t": 1.0, "v": -8.0 }, { "t": 1.6, "v": 8.0, "ease": "outCubic" } ] },
+    { "target": "furnitureProgress",
+      "keys": [ { "t": 1.6, "v": 0.0 }, { "t": 3.0, "v": 1.0, "ease": "outCubic" } ] },
+    { "target": "cameraDolly",
+      "keys": [ { "t": 2.2, "v": 0.0 }, { "t": 3.2, "v": 1.0, "ease": "inOutCubic" } ] },
+    { "target": "crystalScale",
+      "keys": [ { "t": 3.0, "v": 0.0 }, { "t": 3.55, "v": 1.35, "ease": "outCubic" },
+                { "t": 3.8, "v": 1.0, "ease": "inOutCubic" } ] },
+    { "target": "bloomStrength",
+      "keys": [ { "t": 0.0, "v": 0.4 }, { "t": 1.6, "v": 1.6, "ease": "outCubic" },
+                { "t": 3.8, "v": 1.6 }, { "t": 5.0, "v": 0.4, "ease": "inOutCubic" } ] }
+  ],
+  "cues": [
+    { "t": 0.00, "event": "freeze_time" },
+    { "t": 0.50, "event": "show_cutin", "params": { "side": "both" } },
+    { "t": 1.00, "event": "sfx", "params": { "clip": "genesis_scan.ogg" } },
+    { "t": 3.00, "event": "sfx", "params": { "clip": "crystal_descend.ogg" } },
+    { "t": 3.80, "event": "materialize_combatants" },
+    { "t": 4.40, "event": "show_roles" },
+    { "t": 4.80, "event": "sfx", "params": { "clip": "chime_hit.ogg" } },
+    { "t": 5.00, "event": "enable_input" }
+  ]
+}

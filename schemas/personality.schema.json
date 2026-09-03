@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seat-wars/schemas/personality.schema.json",
+  "title": "PersonalityPack",
+  "type": "object",
+  "required": ["personalities"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "personalities": { "type": "array", "items": { "$ref": "#/$defs/personality" } }
+  },
+  "$defs": {
+    "personality": {
+      "type": "object",
+      "required": ["id", "challengeThreshold", "prideScale", "weights"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "enum": ["hothead", "calculator", "loyal", "pacifist", "tyrant", "avenger"] },
+        "label": { "type": "string" },
+        "challengeThreshold": { "type": "number", "minimum": 0, "maximum": 100 },
+        "prideScale": { "type": "number", "minimum": 0.5, "maximum": 2.0 },
+        "weights": {
+          "type": "object",
+          "required": ["value", "winChance", "grudge", "friendship"],
+          "additionalProperties": false,
+          "properties": {
+            "value": { "type": "number" },
+            "winChance": { "type": "number" },
+            "grudge": { "type": "number" },
+            "friendship": { "type": "number" }
+          }
+        },
+        "npcCombat": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aggression": { "type": "number", "minimum": 0, "maximum": 2 },
+            "peekBraveryBias": { "type": "number", "minimum": -0.5, "maximum": 0.5 }
+          }
+        }
+      }
+    }
+  }
+}

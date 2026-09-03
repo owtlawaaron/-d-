@@ -1,0 +1,19 @@
+{
+  "$schema": "../../schemas/manifest.schema.json",
+  "id": "example_pack",
+  "name": "サンプル拡張パック",
+  "version": "1.0.0",
+  "gameVersion": ">=0.1.0",
+  "author": "seat-wars",
+  "description": "JSON を置くだけで武器と教室が増えることを示すサンプル。標準パックの chalk_smg も弱体化している",
+  "loadAfter": ["vanilla"],
+  "provides": {
+    "weapons": ["weapons/stationery_extra.json"],
+    "seat_layouts": ["seat_layouts/wide_8x4.json"]
+  },
+  "overrides": {
+    "weapons": {
+      "chalk_smg": { "damage": 7, "magazine": 45 }
+    }
+  }
+}

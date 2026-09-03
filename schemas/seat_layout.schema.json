@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seat-wars/schemas/seat_layout.schema.json",
+  "title": "SeatLayout",
+  "type": "object",
+  "required": ["id", "cols", "rows", "origin", "pitch", "tagRules"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "name": { "type": "string" },
+    "cols": { "type": "integer", "minimum": 2, "maximum": 12 },
+    "rows": { "type": "integer", "minimum": 2, "maximum": 12 },
+    "origin": { "$ref": "#/$defs/xz" },
+    "pitch": { "$ref": "#/$defs/xz" },
+    "baseValue": { "type": "number", "default": 50 },
+    "tagRules": { "type": "array", "items": { "$ref": "#/$defs/tagRule" } }
+  },
+  "$defs": {
+    "xz": {
+      "type": "object",
+      "required": ["x", "z"],
+      "additionalProperties": false,
+      "properties": { "x": { "type": "number" }, "z": { "type": "number" } }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eq": { "type": "integer" },
+        "gte": { "type": "integer" },
+        "lte": { "type": "integer" },
+        "in": { "type": "array", "items": { "type": "integer" } }
+      }
+    },
+    "tagRule": {
+      "type": "object",
+      "required": ["tag", "when", "weight"],
+      "additionalProperties": false,
+      "properties": {
+        "tag": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "label": { "type": "string" },
+        "when": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "col": { "$ref": "#/$defs/condition" },
+            "row": { "$ref": "#/$defs/condition" }
+          }
+        },
+        "weight": { "type": "number", "minimum": -50, "maximum": 50 },
+        "seasonal": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "spring": { "type": "number" }, "summer": { "type": "number" },
+            "autumn": { "type": "number" }, "winter": { "type": "number" }
+          }
+        }
+      }
+    }
+  }
+}

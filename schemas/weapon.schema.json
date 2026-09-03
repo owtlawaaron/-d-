@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seat-wars/schemas/weapon.schema.json",
+  "title": "WeaponPack",
+  "type": "object",
+  "required": ["weapons"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "weapons": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/weapon" } }
+  },
+  "$defs": {
+    "weapon": {
+      "type": "object",
+      "required": ["id", "name", "kind", "damage", "fireRate", "magazine", "reloadTime"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "name": { "type": "string" },
+        "kind": { "enum": ["hitscan", "projectile", "charge", "melee", "support"] },
+        "slot": { "enum": ["primary", "secondary", "melee", "support"], "default": "primary" },
+        "damage": { "type": "number", "minimum": 0, "maximum": 200 },
+        "damageMax": { "type": "number", "minimum": 0, "maximum": 200,
+                       "description": "charge 系の最大チャージ時ダメージ" },
+        "chargeTime": { "type": "number", "minimum": 0 },
+        "fireRate": { "type": "number", "minimum": 0.05, "maximum": 30, "description": "発/秒" },
+        "magazine": { "type": "integer", "minimum": 1, "maximum": 999 },
+        "reloadTime": { "type": "number", "minimum": 0 },
+        "range": { "type": "number", "minimum": 0.5, "default": 40 },
+        "projectileSpeed": { "type": "number", "minimum": 1 },
+        "projectileGravity": { "type": "number", "default": 0 },
+        "knockback": { "type": "number", "default": 0 },
+        "spread": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "base": { "type": "number", "minimum": 0 },
+            "perShot": { "type": "number", "minimum": 0 },
+            "max": { "type": "number", "minimum": 0 },
+            "recoverPerSec": { "type": "number", "minimum": 0 }
+          }
+        },
+        "recoil": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "vertical": { "type": "number" }, "horizontal": { "type": "number" }
+          }
+        },
+        "headshotMultiplier": { "type": "number", "minimum": 1, "default": 2.0 },
+        "crystalMultiplier": { "type": "number", "minimum": 0, "default": 0.6 },
+        "healAmount": { "type": "number", "minimum": 0 },
+        "onHit": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["effect"],
+            "additionalProperties": false,
+            "properties": {
+              "effect": { "enum": ["dust_cloud", "slow", "knockback", "mark", "bounce"] },
+              "duration": { "type": "number", "minimum": 0 },
+              "magnitude": { "type": "number" }
+            }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "fire": { "type": "string" }, "reload": { "type": "string" }, "hit": { "type": "string" }
+          }
+        },
+        "atkRating": { "type": "number", "minimum": 0.1, "maximum": 3, "default": 1 },
+        "defRating": { "type": "number", "minimum": 0.1, "maximum": 3, "default": 1 }
+      }
+    }
+  }
+}
