@@ -164,6 +164,8 @@ export interface AddonManifest {
   id: string;
   name: string;
   version: string;
+  /** false なら読み込まない（既定 true） */
+  enabled?: boolean;
   loadAfter?: string[];
   provides?: Record<string, string[]>;
   overrides?: Record<string, Record<string, Record<string, unknown>>>;

@@ -3,35 +3,87 @@
   "$id": "https://seat-wars/schemas/manifest.schema.json",
   "title": "AddonManifest",
   "type": "object",
-  "required": ["id", "name", "version", "provides"],
+  "required": [
+    "id",
+    "name",
+    "version",
+    "provides"
+  ],
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
-    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-    "name": { "type": "string" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
-    "gameVersion": { "type": "string" },
-    "author": { "type": "string" },
-    "description": { "type": "string" },
-    "loadAfter": { "type": "array", "items": { "type": "string" } },
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "gameVersion": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "loadAfter": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "provides": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "seat_layouts": { "$ref": "#/$defs/paths" },
-        "students": { "$ref": "#/$defs/paths" },
-        "weapons": { "$ref": "#/$defs/paths" },
-        "arenas": { "$ref": "#/$defs/paths" },
-        "personalities": { "$ref": "#/$defs/paths" }
+        "seat_layouts": {
+          "$ref": "#/$defs/paths"
+        },
+        "students": {
+          "$ref": "#/$defs/paths"
+        },
+        "weapons": {
+          "$ref": "#/$defs/paths"
+        },
+        "arenas": {
+          "$ref": "#/$defs/paths"
+        },
+        "personalities": {
+          "$ref": "#/$defs/paths"
+        }
       }
     },
     "overrides": {
       "type": "object",
       "description": "既存 id のフィールドを部分上書きする。カテゴリ -> id -> 差分",
-      "additionalProperties": { "type": "object", "additionalProperties": { "type": "object" } }
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object"
+        }
+      }
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "false ならこのパックを読み込まない（サンプルを同梱したまま無効化できる）"
     }
   },
   "$defs": {
-    "paths": { "type": "array", "items": { "type": "string", "pattern": "^[^/].*\\.json$" } }
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[^/].*\\.json$"
+      }
+    }
   }
 }

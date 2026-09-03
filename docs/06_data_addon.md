@@ -26,6 +26,7 @@ addons/
   "version": "1.0.0",
   "gameVersion": ">=0.3.0",
   "author": "you",
+  "enabled": true,          // false にすると同梱したまま無効化できる
   "loadAfter": ["vanilla"],
   "provides": {
     "seat_layouts": ["seat_layouts/class_3b.json"],
@@ -37,6 +38,10 @@ addons/
   }
 }
 ```
+
+> 同梱の `addons/example_pack/` は **`"enabled": false`** で出荷している。
+> `true` に変えて再ビルドすると、ホチキスショットガン・スティックのりガンと
+> 8列×4行の特別教室が増え、`chalk_smg` が弱体化される（overrides の動作確認用）。
 
 ## 6.2 読み込みとマージ規則（DataRegistry）
 

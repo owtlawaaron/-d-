@@ -108,6 +108,7 @@ export class DataRegistry {
     for (const [path, doc] of Object.entries(addonFiles)) {
       if (!path.endsWith('/manifest.json')) continue;
       const manifest = doc as AddonManifest;
+      if (manifest.enabled === false) continue; // 同梱したまま無効化できる
       manifests.push({ dir: path.slice(0, path.lastIndexOf('/')), manifest });
     }
     // loadAfter を尊重した簡易トポロジカルソート（vanilla は常に先に読み込み済み）

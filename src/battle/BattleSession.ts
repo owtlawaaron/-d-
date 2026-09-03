@@ -186,22 +186,24 @@ export class BattleSession {
 
   private setupViewModel(): void {
     this.viewModel = new THREE.Group();
+    // 文房具っぽく見えるよう、暗い本体＋白いチョークの銃身にする
     const body = new THREE.Mesh(
-      new THREE.BoxGeometry(0.07, 0.08, 0.34),
-      new THREE.MeshStandardMaterial({ color: 0xb9b3a6, roughness: 0.6, metalness: 0.2 }),
+      new THREE.BoxGeometry(0.075, 0.085, 0.30),
+      new THREE.MeshStandardMaterial({ color: 0x424a55, roughness: 0.55, metalness: 0.3 }),
     );
-    body.position.set(0.26, -0.24, -0.78);
+    body.position.set(0.24, -0.21, -0.72);
     const barrel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.035, 0.035, 0.20),
-      new THREE.MeshStandardMaterial({ color: 0x8b857a, roughness: 0.5, metalness: 0.35 }),
+      new THREE.BoxGeometry(0.036, 0.036, 0.22),
+      new THREE.MeshStandardMaterial({ color: 0xf4efe2, roughness: 0.9 }),
     );
-    barrel.position.set(0.26, -0.23, -0.98);
+    barrel.position.set(0.24, -0.20, -0.93);
     const grip = new THREE.Mesh(
-      new THREE.BoxGeometry(0.05, 0.12, 0.07),
-      new THREE.MeshStandardMaterial({ color: 0x33383f, roughness: 0.85 }),
+      new THREE.BoxGeometry(0.055, 0.13, 0.075),
+      new THREE.MeshStandardMaterial({ color: 0x23272d, roughness: 0.9 }),
     );
-    grip.position.set(0.26, -0.31, -0.66);
+    grip.position.set(0.24, -0.29, -0.61);
     this.viewModel.add(body, barrel, grip);
+    this.viewModel.rotation.set(0.02, 0.10, 0.03);
     this.camera.add(this.viewModel);
     this.scene.add(this.camera);
   }
