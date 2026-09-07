@@ -79,12 +79,20 @@ NPC 同士の対戦を即決着させる閉形式モデル（K=2.63 / DEFENDER_A
 
 ## 遊ぶ
 
+**ブラウザですぐ遊ぶ**: https://claude.ai/code/artifact/f97569ee-415b-4de2-9e90-149de364a39b
+
+手元で動かす場合:
+
 ```bash
 npm install
-npm run dev        # http://localhost:5173 を開く
+npm run dev            # http://localhost:5173 を開く
 ```
 
-ビルドは `npm run build`（`tsc --noEmit` の型チェック込み）、確認は `npm run preview`。
+- `npm run build` — 型チェック（`tsc --noEmit`）込みのビルド
+- `npm run preview` — ビルド結果の確認
+- `npm run build:artifact` — 依存を全てインライン化した1枚の HTML
+  （`dist/seat-wars.artifact.html`, 約620KB）を出力する。
+  画像・音声アセットを一切持たないので、このファイル単体で動く。
 
 ### 操作
 
@@ -128,7 +136,9 @@ npm run dev        # http://localhost:5173 を開く
   アニメーション＋ワイヤーフレーム重ねで実装（見た目はほぼ同じ、リスクが低い）。
   シェーダ版の仕様は docs/05 に残してある。
 - ダメージは遅延フラッシュせず即時適用（1v1では順序依存が起きないため）。
-- 3Dモデルは docs/04 の P0「箱人間」。音はアセットを持たず WebAudio の合成音。
+- 3Dモデルは glTF ではなくプリミティブの階層構造で組んでいる（肩・肘・股・膝に
+  ピボットを置いた擬似スケルトン）。テクスチャは Canvas による手続き生成で、
+  画像ファイルは1枚も持たない。音も WebAudio の合成音。
 - NPC同士の対戦の3D観戦は未実装（抽象モデルで即決着し、ログだけ出る）。
 
 ## 技術スタック（決定）

@@ -88,7 +88,8 @@ button.ghost { border-color: var(--line); background: rgba(255, 255, 255, 0.05);
 
 .side { display: flex; flex-direction: column; gap: 12px; }
 .stat-line { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); }
-.bar { height: 7px; border-radius: 4px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.bar { height: 7px; border-radius: 4px; background: rgba(8,12,20,0.55); overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35); }
 .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #2aa8ff, #7ee0ff); }
 .bar.warn > i { background: linear-gradient(90deg, #ff8a3c, #ffd76a); }
 .log { max-height: 190px; overflow-y: auto; font-size: 12px; line-height: 1.7; }
@@ -103,25 +104,27 @@ button.ghost { border-color: var(--line); background: rgba(255, 255, 255, 0.05);
 .hud-timer { font-size: 40px; font-weight: 900; letter-spacing: 0.06em; text-shadow: 0 2px 14px rgba(0,0,0,0.8); }
 .hud-timer.urgent { color: #ff6a4a; animation: pulse 0.75s infinite; }
 @keyframes pulse { 50% { opacity: 0.45; } }
-.hud-role { font-size: 12px; letter-spacing: 0.34em; margin-top: 2px; }
+.hud-role { font-size: 12px; letter-spacing: 0.34em; margin-top: 2px; text-shadow: 0 1px 8px rgba(0,0,0,0.95); }
 .hud-role.attack { color: var(--attack); }
 .hud-role.defend { color: var(--defend); }
 
 .hud-crystal { position: absolute; top: 16px; right: 20px; width: 230px; text-align: right; }
-.hud-crystal .lbl { font-size: 10px; letter-spacing: 0.24em; color: #9fc7e6; }
+.hud-crystal .lbl { font-size: 11px; letter-spacing: 0.22em; color: #dff0ff; text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.8); }
 .hud-crystal .bar { height: 12px; margin-top: 4px; }
 .hud-crystal .bar > i { background: linear-gradient(90deg, #2a7fff, #8fe4ff); }
 .hud-crystal.low .bar > i { background: linear-gradient(90deg, #ff5a3c, #ffb03c); }
 
-.hud-bottom { position: absolute; left: 24px; bottom: 20px; display: flex; flex-direction: column; gap: 6px; }
+.hud-bottom { position: absolute; left: 24px; bottom: 20px; display: flex; flex-direction: column; gap: 6px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
 .hud-hp { font-size: 30px; font-weight: 900; }
 .hud-hpbar { width: 250px; height: 10px; }
-.hud-respawn { font-size: 11px; letter-spacing: 0.2em; color: #9fb3c8; }
-.hud-weapon { position: absolute; right: 24px; bottom: 20px; text-align: right; }
+.hud-respawn { font-size: 11px; letter-spacing: 0.2em; color: #cfe0f0; }
+.hud-weapon { position: absolute; right: 24px; bottom: 20px; text-align: right;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
 .hud-ammo { font-size: 34px; font-weight: 900; }
 .hud-ammo small { font-size: 16px; opacity: 0.6; }
 .hud-wname { font-size: 12px; letter-spacing: 0.16em; color: #cfe0f0; }
-.hud-wlist { margin-top: 6px; font-size: 11px; color: #8fa3bb; }
+.hud-wlist { margin-top: 6px; font-size: 11px; color: #c3d3e4; }
 .hud-wlist b { color: #fff; }
 .hud-reload { color: #ffd76a; font-size: 12px; letter-spacing: 0.2em; }
 
@@ -144,7 +147,7 @@ button.ghost { border-color: var(--line); background: rgba(255, 255, 255, 0.05);
 .center-msg.on { opacity: 1; }
 .center-sub { display: block; font-size: 14px; letter-spacing: 0.2em; opacity: 0.8; margin-top: 8px; font-weight: 600; }
 
-.dmg-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 45%, rgba(255,40,20,0.55)); opacity: 0; transition: opacity 180ms ease; }
+.dmg-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 52%, rgba(220,40,25,0.40)); opacity: 0; transition: opacity 180ms ease; }
 .dmg-flash.on { opacity: 1; }
 
 .killfeed { position: absolute; top: 96px; right: 20px; text-align: right; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }

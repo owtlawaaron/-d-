@@ -5,7 +5,8 @@ import type { InputManager } from '../core/InputManager';
 import type { Seat } from '../meta/SeatValue';
 import type { Student } from '../meta/Student';
 import { audio } from '../core/Audio';
-import { animateStudentMesh, createStudentMesh, type StudentMesh } from '../render/StudentMesh';
+import { createStudentMesh, poseStudentMesh, type StudentMesh } from '../render/StudentMesh';
+import { makeHands, makeWeaponModel } from '../render/Weapons3D';
 import { buildArena, type Arena } from './ArenaBuilder';
 import { Combatant, type Team } from './Combatant';
 import { rayBox, raySphere, type Box } from './Colliders';
@@ -60,6 +61,11 @@ export class BattleSession {
   private group = new THREE.Group();
   private lights: THREE.Object3D[] = [];
   private viewModel!: THREE.Group;
+  private viewWeapon: THREE.Group | null = null;
+  private viewWeaponId = '';
+  private npcWeapon: THREE.Group | null = null;
+  private npcWeaponId = '';
+  private npcFireFlash = 0;
 
   private timeLeft = 0;
   private phaseTime = 0;
@@ -168,9 +174,9 @@ export class BattleSession {
   }
 
   private setupLights(): void {
-    const hemi = new THREE.HemisphereLight(0xdfefff, 0x8a7a62, 0.9);
-    const sun = new THREE.DirectionalLight(0xfff0d6, 1.1);
-    sun.position.set(9, 14, 5);
+    const hemi = new THREE.HemisphereLight(0xdfefff, 0x8a7a62, 1.0);
+    const sun = new THREE.DirectionalLight(0xfff0d6, 1.35);
+    sun.position.set(this.arenaDef.bounds.x * 0.9, 12, 4);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
     sun.shadow.camera.left = -14;
@@ -178,43 +184,102 @@ export class BattleSession {
     sun.shadow.camera.top = 14;
     sun.shadow.camera.bottom = -14;
     sun.shadow.camera.far = 46;
-    const fill = new THREE.DirectionalLight(0xbcd8ff, 0.3);
-    fill.position.set(-8, 9, -6);
-    this.lights = [hemi, sun, fill];
+    sun.target.position.set(-2, 0.6, 0);
+    const fill = new THREE.DirectionalLight(0xbcd8ff, 0.28);
+    fill.position.set(-10, 9, -6);
+    // 蛍光灯の間接光
+    const bounce = new THREE.PointLight(0xfff4dd, 26, 26, 2.0);
+    bounce.position.set(0, this.arenaDef.bounds.y - 1.0, 0);
+    this.lights = [hemi, sun, sun.target, fill, bounce];
     for (const l of this.lights) this.group.add(l);
   }
 
   private setupViewModel(): void {
     this.viewModel = new THREE.Group();
-    // 文房具っぽく見えるよう、暗い本体＋白いチョークの銃身にする
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(0.075, 0.085, 0.30),
-      new THREE.MeshStandardMaterial({ color: 0x424a55, roughness: 0.55, metalness: 0.3 }),
-    );
-    body.position.set(0.24, -0.21, -0.72);
-    const barrel = new THREE.Mesh(
-      new THREE.BoxGeometry(0.036, 0.036, 0.22),
-      new THREE.MeshStandardMaterial({ color: 0xf4efe2, roughness: 0.9 }),
-    );
-    barrel.position.set(0.24, -0.20, -0.93);
-    const grip = new THREE.Mesh(
-      new THREE.BoxGeometry(0.055, 0.13, 0.075),
-      new THREE.MeshStandardMaterial({ color: 0x23272d, roughness: 0.9 }),
-    );
-    grip.position.set(0.24, -0.29, -0.61);
-    this.viewModel.add(body, barrel, grip);
-    this.viewModel.rotation.set(0.02, 0.10, 0.03);
+    this.viewModel.position.set(0.21, -0.18, -0.64);
+    this.viewModel.rotation.set(0.02, 0.09, 0.02);
+    this.viewModel.scale.setScalar(0.82);
+    const hands = makeHands(this.player.student.def.appearance?.skin
+      ? new THREE.Color(this.player.student.def.appearance.skin).getHex() : 0xf0cba8);
+    this.viewModel.add(hands);
+    // 手元が暗く潰れないよう、カメラに小さな補助光を付ける
+    const handLight = new THREE.PointLight(0xfff0dc, 2.2, 2.6, 2);
+    handLight.position.set(0.1, 0.25, 0.2);
+    this.camera.add(handLight);
     this.camera.add(this.viewModel);
     this.scene.add(this.camera);
+    this.syncViewWeapon();
+  }
+
+  /** 持ち替えたら一人称の武器モデルを差し替える。 */
+  private syncViewWeapon(): void {
+    const id = this.player.weapon.def.id;
+    if (id === this.viewWeaponId) return;
+    this.viewWeaponId = id;
+    if (this.viewWeapon) {
+      this.viewModel.remove(this.viewWeapon);
+      disposeTree(this.viewWeapon);
+    }
+    this.viewWeapon = makeWeaponModel(id);
+    this.viewModel.add(this.viewWeapon);
+  }
+
+  /** NPC の手に持たせる武器モデルを同期する。 */
+  private syncNpcWeapon(): void {
+    const id = this.npc.weapon.def.id;
+    if (id === this.npcWeaponId) return;
+    this.npcWeaponId = id;
+    if (this.npcWeapon) {
+      this.npcMesh.hand.remove(this.npcWeapon);
+      disposeTree(this.npcWeapon);
+    }
+    const model = makeWeaponModel(id);
+    // 手のローカル -Y が腕の延長。武器の銃口(-Z)をそこへ向ける
+    model.rotation.x = -Math.PI / 2;
+    model.position.set(0.02, -0.05, 0);
+    this.npcMesh.hand.add(model);
+    this.npcWeapon = model;
   }
 
   private spawnPointFor(c: Combatant): THREE.Vector3 {
     if (c.team === 'ATTACK') {
       const list = this.arena.attackerSpawns;
       const i = c.isPlayer ? Math.floor(list.length / 2) : Math.floor(Math.random() * list.length);
-      return list[i];
+      return this.findFreeSpawn(list[i]);
     }
-    return this.arena.defenderSpawn;
+    return this.findFreeSpawn(this.arena.defenderSpawn);
+  }
+
+  /**
+   * 机や教卓の内部にスポーンしないよう、周囲に螺旋状に探して空いている場所を返す。
+   * 見つからなければ元の位置（安全側に倒すより、進行不能を避ける）。
+   */
+  private findFreeSpawn(preferred: THREE.Vector3): THREE.Vector3 {
+    const r = this.rules.movement.capsule.radius + 0.06;
+    const h = this.rules.movement.capsule.height;
+    const min = new THREE.Vector3();
+    const max = new THREE.Vector3();
+    const probe: Box[] = [];
+    const free = (x: number, z: number) => {
+      min.set(x - r, 0.05, z - r);
+      max.set(x + r, 0.05 + h, z + r);
+      return this.arena.world.overlapping(min, max, probe).length === 0;
+    };
+    if (free(preferred.x, preferred.z)) return preferred.clone();
+    for (let ring = 1; ring <= 14; ring++) {
+      const radius = ring * 0.55;
+      const steps = 8 + ring * 4;
+      for (let i = 0; i < steps; i++) {
+        const a = (i / steps) * Math.PI * 2 + ring;
+        const x = preferred.x + Math.cos(a) * radius;
+        const z = preferred.z + Math.sin(a) * radius;
+        const bx = this.arenaDef.bounds.x / 2 - 1.0;
+        const bz = this.arenaDef.bounds.z / 2 - 1.0;
+        if (Math.abs(x) > bx || Math.abs(z) > bz) continue;
+        if (free(x, z)) return new THREE.Vector3(x, preferred.y, z);
+      }
+    }
+    return preferred.clone();
   }
 
   private spawn(c: Combatant, initial = false): void {
@@ -536,6 +601,9 @@ export class BattleSession {
       this.pendingRecover += kick * 0.65;
       this.sinceFire = 0;
       this.viewModel.position.z += 0.035;
+      this.viewModel.rotation.x += 0.05;
+    } else {
+      this.npcFireFlash = 1;
     }
 
     // 拡散
@@ -781,19 +849,33 @@ export class BattleSession {
       this.camera.position.y = p.position.y + 0.4;
       this.camera.rotation.z = 0.5;
     }
-    this.viewModel.position.z += (0 - this.viewModel.position.z) * 0.25;
+    this.viewModel.position.z += (-0.64 - this.viewModel.position.z) * 0.25;
+    this.viewModel.rotation.x += (0.02 - this.viewModel.rotation.x) * 0.22;
+    // 歩きに合わせて武器を揺らす
+    const sp = Math.hypot(p.controller.velocity.x, p.controller.velocity.z);
+    const bob = Math.min(1, sp / 5);
+    this.viewModel.position.x = 0.21 + Math.sin(this.anim * 9) * 0.012 * bob;
+    this.viewModel.position.y = -0.18 + Math.abs(Math.cos(this.anim * 9)) * 0.014 * bob;
     this.viewModel.visible = p.alive;
+    this.syncViewWeapon();
   }
 
   private syncNpcMesh(dt: number): void {
     const n = this.npc;
-    this.npcMesh.group.visible = n.alive;
-    if (!n.alive) return;
+    this.npcFireFlash = Math.max(0, this.npcFireFlash - dt * 6);
+    // 倒れた直後は少しの間その場に残す
+    this.npcMesh.group.visible = n.alive || n.respawnTimer > 0 || !n.alive;
     this.npcMesh.group.position.copy(n.position);
     this.npcMesh.group.rotation.y = n.yaw;
+    this.syncNpcWeapon();
     const speed = Math.hypot(n.controller.velocity.x, n.controller.velocity.z);
-    animateStudentMesh(this.npcMesh, this.anim, speed, n.weapon.cooldown > 0 ? 1 : 0);
-    void dt;
+    poseStudentMesh(this.npcMesh, this.anim, {
+      speed,
+      aim: n.alive ? 1 : 0,
+      fire: this.npcFireFlash,
+      down: n.alive ? 0 : 1,
+      pitch: n.pitch,
+    });
   }
 
   // ----------------------------------------------------------------- cleanup
@@ -806,10 +888,22 @@ export class BattleSession {
     this.vfx?.dispose();
     this.arena?.dispose();
     this.camera.remove(this.viewModel);
+    disposeTree(this.viewModel);
+    this.viewWeapon = null;
+    this.viewWeaponId = '';
+    this.npcWeapon = null;
+    this.npcWeaponId = '';
     this.scene.remove(this.group);
     this.group.clear();
     this.group = new THREE.Group();
     this.deployedBoxes = [];
     this.traps = [];
   }
+}
+
+function disposeTree(root: THREE.Object3D): void {
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    mesh.geometry?.dispose?.();
+  });
 }
