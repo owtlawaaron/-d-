@@ -9,7 +9,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "build:artifact": "npm run build && node tools/build-artifact.mjs"
+    "build:artifact": "npm run build && node tools/build-artifact.mjs",
+    "test:movement": "esbuild tests/movement.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/movement.test.mjs --log-level=warning && node node_modules/.cache/movement.test.mjs",
+    "test": "npm run typecheck && npm run test:movement"
   },
   "dependencies": {
     "three": "^0.169.0"

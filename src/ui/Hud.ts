@@ -28,7 +28,12 @@ export class Hud {
   private flash = el('div', 'dmg-flash');
   private feed = el('div', 'killfeed');
   private prep = el('div', 'prep-hint hidden');
+  private cross = el('div', 'crosshair', '<i></i><i></i><i></i><i></i>');
+  private dmgDir = el('div', 'dmg-dir', '<i></i>');
+  private speed = el('div', 'speedlines');
   private msgTimer = 0;
+  private dmgTimer = 0;
+  private spreadPx = 13;
 
   constructor(parent: HTMLElement) {
     this.root.id = 'hud';
@@ -49,9 +54,7 @@ export class Hud {
     const weapon = el('div', 'hud-weapon');
     weapon.append(this.reload, this.ammo, this.wname, this.wlist);
 
-    const cross = el('div', 'crosshair', '<i></i><i></i><i></i><i></i>');
-
-    this.root.append(this.flash, cross, this.hitmarker, top, this.crystalWrap, bottom, weapon, this.msg, this.feed, this.prep);
+    this.root.append(this.speed, this.flash, this.dmgDir, this.cross, this.hitmarker, top, this.crystalWrap, bottom, weapon, this.msg, this.feed, this.prep);
     parent.append(this.root);
   }
 
@@ -92,7 +95,32 @@ export class Hud {
       .join('  ');
   }
 
-  hit(): void {
+  /** 照準の開き（ピクセル）。拡散が大きいほど開く。 */
+  setSpread(px: number): void {
+    const v = Math.round(px);
+    if (v === this.spreadPx) return;
+    this.spreadPx = v;
+    this.cross.style.width = this.cross.style.height = `${v * 2 + 2}px`;
+  }
+
+  setAds(on: boolean): void {
+    this.cross.classList.toggle('ads', on);
+  }
+
+  /** 走り・スライドの速度線（0〜1）。 */
+  setSpeedLines(k: number): void {
+    this.speed.style.opacity = (k * 0.55).toFixed(2);
+  }
+
+  /** 被弾方向の表示。angle は 0=正面、+ で右。 */
+  damageFrom(angle: number): void {
+    this.dmgDir.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+    this.dmgDir.classList.add('on');
+    this.dmgTimer = 1.1;
+  }
+
+  hit(head = false): void {
+    this.hitmarker.classList.toggle('head', head);
     this.hitmarker.classList.remove('on');
     void this.hitmarker.offsetWidth;
     this.hitmarker.classList.add('on');
@@ -122,6 +150,10 @@ export class Hud {
   }
 
   update(dt: number): void {
+    if (this.dmgTimer > 0) {
+      this.dmgTimer -= dt;
+      if (this.dmgTimer <= 0) this.dmgDir.classList.remove('on');
+    }
     if (this.msgTimer > 0) {
       this.msgTimer -= dt;
       if (this.msgTimer <= 0) this.msg.classList.remove('on');

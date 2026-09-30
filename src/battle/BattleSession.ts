@@ -62,6 +62,7 @@ export class BattleSession {
   private lights: THREE.Object3D[] = [];
   private viewModel!: THREE.Group;
   private viewWeapon: THREE.Group | null = null;
+  private viewLights: THREE.Light[] = [];
   private viewWeaponId = '';
   private npcWeapon: THREE.Group | null = null;
   private npcWeaponId = '';
@@ -81,12 +82,31 @@ export class BattleSession {
   private traps: { pos: THREE.Vector3; mesh: THREE.Mesh; damage: number; slow: number; slowDur: number; radius: number }[] = [];
   private prevTriggerHeld = false;
   private anim = 0;
+  // --- 手触り（描画レートで更新する） ---
+  private ads = false;
+  private adsBlend = 0;
+  private sprinting = false;
+  private fov = 80;
+  private landDip = 0;
+  private bobPhase = 0;
+  private roll = 0;
+  private shake = 0;
+  private swayX = 0;
+  private swayY = 0;
+  private camHeight = 1.58;
+  private stepAccum = 0;
+  private npcStepAccum = 0;
+  private lastShotHead = false;
+  /** 2回目以降の生成演出は短くする */
+  private static battlesSeen = 0;
+  private genesisScale = 1;
   /** クリスタルが直近で削られたか（守りNPCの反応に使う） */
   private crystalAlert = 0;
 
   constructor(
     private readonly scene: THREE.Scene,
     private readonly camera: THREE.PerspectiveCamera,
+    private readonly view: { scene: THREE.Scene; camera: THREE.PerspectiveCamera },
     private readonly input: InputManager,
     private readonly reg: DataRegistry,
     private readonly rules: BattleRules,
@@ -159,6 +179,8 @@ export class BattleSession {
 
     this.phase = 'GENESIS';
     this.phaseTime = 0;
+    this.genesisScale = BattleSession.battlesSeen > 0 ? 2.4 : 1; // 2戦目からは約2秒
+    BattleSession.battlesSeen++;
     this.timeLeft = this.rules.matchDuration;
     this.result = null;
     this.hud.clear();
@@ -203,11 +225,14 @@ export class BattleSession {
       ? new THREE.Color(this.player.student.def.appearance.skin).getHex() : 0xf0cba8);
     this.viewModel.add(hands);
     // 手元が暗く潰れないよう、カメラに小さな補助光を付ける
-    const handLight = new THREE.PointLight(0xfff0dc, 2.2, 2.6, 2);
-    handLight.position.set(0.1, 0.25, 0.2);
-    this.camera.add(handLight);
-    this.camera.add(this.viewModel);
-    this.scene.add(this.camera);
+    // 武器専用シーンの照明（ワールドの壁を照らさない）
+    this.viewLights = [
+      new THREE.HemisphereLight(0xeef4ff, 0x6a5a45, 1.3),
+      new THREE.DirectionalLight(0xfff0dc, 1.2),
+    ];
+    this.viewLights[1].position.set(0.6, 1.2, 0.8);
+    for (const l of this.viewLights) this.view.scene.add(l);
+    this.view.camera.add(this.viewModel);
     this.syncViewWeapon();
   }
 
@@ -310,7 +335,7 @@ export class BattleSession {
   private updateGenesis(dt: number): void {
     this.phaseTime += dt;
     const skip = this.input.pressed('Space') || this.input.pressed('Escape') || this.input.pressed('Enter');
-    const done = this.genesis.update(dt, skip && this.phaseTime > 0.5);
+    const done = this.genesis.update(dt * this.genesisScale, skip && this.phaseTime > 0.3);
     this.crystal.update(dt, this.timeLeft);
     this.syncNpcMesh(0);
     if (done) this.enterPrepare();
@@ -318,7 +343,9 @@ export class BattleSession {
 
   private enterPrepare(): void {
     this.phase = 'PREPARE';
-    this.phaseTime = this.rules.prepareDuration;
+    this.phaseTime = this.cfg.playerRole === 'DEFEND'
+      ? this.rules.prepareDuration
+      : (this.rules.attackerPrepareDuration ?? 3);
     this.genesis.finish();
     this.hud.show(true);
     this.placeNpcDeployables();
@@ -326,16 +353,14 @@ export class BattleSession {
     if (this.cfg.playerRole === 'DEFEND') {
       this.hud.message('準備フェーズ', '机で射線を切れ', 2.2);
     } else {
-      this.hud.message('準備フェーズ', 'クリスタルの位置を確認しろ', 2.2);
+      this.hud.message('READY', 'クリスタルを探せ', 1.4);
     }
   }
 
   private updatePrepare(dt: number): void {
     this.phaseTime -= dt;
-    this.updatePlayerLook();
     this.updatePlayerMove(dt);
     this.player.update(dt);
-    this.syncCamera();
     this.syncNpcMesh(dt);
     this.crystal.update(dt, this.timeLeft);
     this.hud.setTimer(this.phaseTime, this.phaseTime < 5);
@@ -344,7 +369,6 @@ export class BattleSession {
 
     if (this.cfg.playerRole === 'DEFEND') this.handleDeployInput();
     if (this.input.pressed('Enter') || this.phaseTime <= 0) this.enterFight();
-    this.input.endFrame();
   }
 
   private prepareHint(): string {
@@ -357,7 +381,7 @@ export class BattleSession {
         + `<span class="kbd">右クリック</span> 教科書シールド ×${s}　`
         + `<span class="kbd">T</span> 画鋲トラップ ×${k}　<span class="kbd">Enter</span> 開始`;
     }
-    return `準備 ${t}秒　射線と遮蔽を確認しろ　<span class="kbd">Enter</span> 開始`;
+    return `開始まで ${t}　<span class="kbd">Enter</span> すぐ始める`;
   }
 
   private enterFight(): void {
@@ -379,7 +403,6 @@ export class BattleSession {
 
     // --- プレイヤー ---
     if (this.player.alive) {
-      this.updatePlayerLook();
       this.updatePlayerMove(dt);
       this.handlePlayerCombat(dt);
     } else {
@@ -408,19 +431,17 @@ export class BattleSession {
     this.updateProjectiles(dt);
     this.updateTraps();
     this.crystal.update(dt, this.timeLeft);
-    this.syncCamera();
     this.syncNpcMesh(dt);
+    this.updateFootsteps(dt);
 
     this.hud.setTimer(this.timeLeft, this.timeLeft <= 10);
     this.hud.setCrystal(this.crystal);
     this.hud.syncPlayer(this.player);
     this.checkVictory();
-    this.input.endFrame();
   }
 
   private updateOver(dt: number): void {
     this.overTimer -= dt;
-    this.syncCamera();
     this.syncNpcMesh(dt);
     this.crystal.update(dt, 0);
     this.updateProjectiles(dt);
@@ -429,32 +450,13 @@ export class BattleSession {
       this.resolveFn = null;
       fn(this.result);
     }
-    this.input.endFrame();
   }
 
   // ---------------------------------------------------------- player control
 
-  private updatePlayerLook(): void {
-    const p = this.player;
-    p.yaw -= this.input.mouseDx * this.input.sensitivity;
-    p.pitch -= this.input.mouseDy * this.input.sensitivity;
-    // 矢印キーでも視点を動かせる（マウスが使えない環境の保険）
-    const KEY_TURN = 1.9 / 60;
-    if (this.input.down('ArrowLeft')) p.yaw += KEY_TURN;
-    if (this.input.down('ArrowRight')) p.yaw -= KEY_TURN;
-    if (this.input.down('ArrowUp')) p.pitch += KEY_TURN * 0.6;
-    if (this.input.down('ArrowDown')) p.pitch -= KEY_TURN * 0.6;
-    // リコイルの復帰
-    if (this.pendingRecover > 0 && this.sinceFire > 0.14) {
-      const back = Math.min(this.pendingRecover, 2.4 * DEG * 60 * (1 / 60));
-      p.pitch -= back;
-      this.pendingRecover -= back;
-    }
-    p.pitch = THREE.MathUtils.clamp(p.pitch, -1.45, 1.45);
-  }
-
   private updatePlayerMove(dt: number): void {
     const p = this.player;
+    const c = p.controller;
     const mv = this.rules.movement;
     const fwd = (this.input.down('KeyW') ? 1 : 0) - (this.input.down('KeyS') ? 1 : 0);
     const strafe = (this.input.down('KeyD') ? 1 : 0) - (this.input.down('KeyA') ? 1 : 0);
@@ -465,13 +467,58 @@ export class BattleSession {
     );
     if (dir.lengthSq() > 0) dir.normalize();
 
-    p.controller.setCrouch(this.input.down('ControlLeft') || this.input.down('KeyC'));
-    let speed = p.moveSpeed;
-    if (p.controller.crouching) speed = mv.crouchSpeed;
-    else if (this.input.down('ShiftLeft')) speed = mv.walkSpeed;
+    // ADS は戦闘中だけ（準備中の右クリックは教科書シールドの設置）
+    this.ads = this.phase === 'FIGHT' && this.input.rightDown && !c.sliding;
+    const run = p.moveSpeed;
+    // Ctrl は使わない（W と同時押しで Ctrl+W＝ブラウザのタブが閉じる）
+    const crouchKey = this.input.down('KeyC');
+    this.sprinting = this.input.down('ShiftLeft') && fwd > 0 && !this.ads && !this.input.mouseDown && !crouchKey;
+
+    // 走っている最中にしゃがむとスライディング
+    if (this.input.pressed('KeyC') && c.tryStartSlide(run)) {
+      audio.play('slide');
+      this.shake = Math.max(this.shake, 0.25);
+    }
+    c.setCrouch(crouchKey || c.sliding);
+    if (this.input.pressed('Space')) c.queueJump();
+
+    let speed = run;
+    if (c.sliding) speed = mv.crouchSpeed;
+    else if (c.crouching) speed = mv.crouchSpeed;
+    else if (this.ads) speed = run * mv.adsSpeedMultiplier;
+    else if (this.sprinting) speed = run * mv.sprintMultiplier;
     if (dir.lengthSq() === 0) speed = 0;
 
-    p.controller.step(dt, dir, speed, this.input.down('Space'));
+    c.step(dt, dir, speed, this.input.down('Space'));
+  }
+
+  /** 足音。プレイヤーは自分の足音、NPC は距離と方向で音量と定位が変わる。 */
+  private updateFootsteps(dt: number): void {
+    const pc = this.player.controller;
+    if (this.player.alive && pc.grounded && !pc.sliding) {
+      this.stepAccum += pc.horizontalSpeed * dt;
+      if (this.stepAccum > 2.3) { this.stepAccum = 0; audio.play('step', { volume: pc.crouching ? 0.25 : 0.5 }); }
+    }
+    const nc = this.npc.controller;
+    if (this.npc.alive && nc.grounded) {
+      this.npcStepAccum += nc.horizontalSpeed * dt;
+      if (this.npcStepAccum > 2.3) {
+        this.npcStepAccum = 0;
+        const d = this.npc.position.distanceTo(this.player.position);
+        const vol = THREE.MathUtils.clamp(1.1 - d / 22, 0, 1);
+        if (vol > 0.02) audio.play('step', { volume: vol, pan: this.panOf(this.npc.position) });
+      }
+    }
+  }
+
+  /** プレイヤーから見て、その位置が左右どちらか（-1〜1）。 */
+  private panOf(pos: THREE.Vector3): number {
+    const p = this.player;
+    const dx = pos.x - p.position.x;
+    const dz = pos.z - p.position.z;
+    const right = new THREE.Vector3(Math.cos(p.yaw), 0, -Math.sin(p.yaw));
+    const len = Math.hypot(dx, dz) || 1;
+    return THREE.MathUtils.clamp((dx * right.x + dz * right.z) / len, -1, 1);
   }
 
   private handlePlayerCombat(dt: number): void {
@@ -607,7 +654,17 @@ export class BattleSession {
     }
 
     // 拡散
-    const spreadRad = w.spread * DEG;
+    // 構え・移動状態で拡散が変わる（撃つ前に止まる/構えることに意味を持たせる）
+    let spreadMul = 1;
+    const sc = shooter.controller;
+    if (shooter.isPlayer) {
+      if (this.ads) spreadMul *= 0.45;
+      if (!sc.grounded) spreadMul *= 1.9;
+      else if (sc.sliding) spreadMul *= 1.4;
+      else if (sc.horizontalSpeed > shooter.moveSpeed * 1.05) spreadMul *= 1.6;
+      this.shake = Math.max(this.shake, w.isMelee ? 0.35 : 0.08 + (w.def.recoil?.vertical ?? 0) * 0.12);
+    }
+    const spreadRad = w.spread * DEG * spreadMul;
     if (spreadRad > 0) {
       const a = Math.random() * Math.PI * 2;
       const r = Math.random() * spreadRad;
@@ -721,8 +778,15 @@ export class BattleSession {
       else if (shot.low) amount *= dmgCfg.legMultiplier;
       if (shot.penetrated) amount *= dmgCfg.penetrationMultiplier;
       this.vfx.impact(shot.point, 0xff6a5a);
-      if (shooter.isPlayer) { this.hud.hit(); audio.play('hit'); }
-      else { this.hud.damaged(); }
+      if (shooter.isPlayer) {
+        this.hud.hit(!!shot.head);
+        audio.play(shot.head ? 'headshot' : 'hit');
+      } else {
+        this.hud.damaged();
+        this.hud.damageFrom(this.bearingTo(shooter.position));
+        this.shake = Math.max(this.shake, 0.3);
+      }
+      this.lastShotHead = !!shot.head;
       if (!victim.isPlayer) this.agent.notifyNoise(shooter.position, 1.0);
       const died = victim.damage(amount, shooter.position);
       if (died) this.onDeath(victim, shooter);
@@ -764,7 +828,11 @@ export class BattleSession {
   private onDeath(victim: Combatant, killer: Combatant): void {
     audio.play('death');
     this.hud.log(`${killer.student.name} ▶ ${victim.student.name}`);
-    if (victim.isPlayer) this.hud.message('DOWN', '', 1.2);
+    if (victim.isPlayer) this.hud.message('DOWN', `${killer.student.name} にやられた`, 1.4);
+    if (killer.isPlayer) {
+      this.hud.message('ELIMINATED', this.lastShotHead ? 'HEADSHOT' : '', 1.0);
+      audio.play('kill');
+    }
     const canRespawn = victim.startRespawn();
     if (!canRespawn) {
       if (victim.team === 'ATTACK') {
@@ -831,7 +899,7 @@ export class BattleSession {
     if (this.result) return;
     this.result = { attackerWon, reason };
     this.phase = 'OVER';
-    this.overTimer = 2.6;
+    this.overTimer = this.rules.overDuration ?? 1.6;
     const playerWon = (this.player.team === 'ATTACK') === attackerWon;
     this.hud.message(playerWon ? 'WIN' : 'LOSE', reason, 3);
     audio.play(playerWon ? 'win' : 'lose');
@@ -840,24 +908,132 @@ export class BattleSession {
 
   // ------------------------------------------------------------------ render
 
-  private syncCamera(): void {
-    if (this.phase === 'GENESIS') return;
+  /** プレイヤーから見た、その位置の方位（0=正面、+ で右）。 */
+  private bearingTo(pos: THREE.Vector3): number {
     const p = this.player;
-    this.camera.position.set(p.position.x, p.controller.eyeY, p.position.z);
-    this.camera.rotation.set(p.pitch, p.yaw, 0, 'YXZ');
+    const dx = pos.x - p.position.x;
+    const dz = pos.z - p.position.z;
+    const world = Math.atan2(-dx, -dz);
+    let a = p.yaw - world;
+    while (a > Math.PI) a -= Math.PI * 2;
+    while (a < -Math.PI) a += Math.PI * 2;
+    return a;
+  }
+
+  /**
+   * 描画フレームごとに呼ぶ。視点入力・カメラ・ビューモデルはここで更新する。
+   * 60Hz 固定の物理ステップで視点を動かすと、高リフレッシュレートの画面で
+   * カクつき、入力遅延も出るため。位置は物理ステップ間を alpha で補間する。
+   */
+  renderUpdate(frameDt: number, alpha: number): void {
+    const { dx, dy } = this.input.consumeMouse();
+    // NPC も補間して描く
+    if (this.npcMesh) {
+      const nc = this.npc.controller;
+      this.npcMesh.group.position.lerpVectors(nc.prevPosition, nc.position, alpha);
+    }
+    if (this.paused || this.phase === 'GENESIS' || !this.viewModel) return;
+    const p = this.player;
+    const c = p.controller;
+    const dtc = Math.min(frameDt, 0.05);
+
+    // --- 視点 ---
+    if (p.alive && this.phase !== 'OVER') {
+      const sens = this.input.sensitivity * (this.ads ? 0.72 : 1);
+      p.yaw -= dx * sens;
+      p.pitch -= dy * sens;
+      const turn = 2.4 * dtc;
+      if (this.input.down('ArrowLeft')) p.yaw += turn;
+      if (this.input.down('ArrowRight')) p.yaw -= turn;
+      if (this.input.down('ArrowUp')) p.pitch += turn * 0.6;
+      if (this.input.down('ArrowDown')) p.pitch -= turn * 0.6;
+      if (this.pendingRecover > 0 && this.sinceFire > 0.12) {
+        const back = Math.min(this.pendingRecover, 9 * DEG * dtc);
+        p.pitch -= back;
+        this.pendingRecover -= back;
+      }
+      p.pitch = THREE.MathUtils.clamp(p.pitch, -1.45, 1.45);
+    }
+
+    // --- 位置（補間）と目線の高さ ---
+    const pos = new THREE.Vector3().lerpVectors(c.prevPosition, c.position, alpha);
+    const targetEye = c.height - 0.12;
+    this.camHeight += (targetEye - this.camHeight) * Math.min(1, dtc * 14);
+    if (c.landImpact > 0) {
+      this.landDip = Math.min(0.26, c.landImpact * 0.02);
+      audio.play('land', { volume: Math.min(1, c.landImpact / 10) });
+      c.landImpact = 0;
+    }
+    this.landDip += (0 - this.landDip) * Math.min(1, dtc * 9);
+
+    // --- 歩行の揺れ・傾き・揺さぶり ---
+    const speed = c.horizontalSpeed;
+    const run = p.moveSpeed;
+    let bobY = 0;
+    let bobX = 0;
+    if (c.grounded && !c.sliding && speed > 0.5) {
+      this.bobPhase += dtc * speed * 1.05;
+      const k = Math.min(1, speed / run) * (this.ads ? 0.3 : 1);
+      bobY = Math.sin(this.bobPhase * 2) * 0.03 * k;
+      bobX = Math.cos(this.bobPhase) * 0.02 * k;
+    }
+    const right = new THREE.Vector3(Math.cos(p.yaw), 0, -Math.sin(p.yaw));
+    const lateral = c.velocity.x * right.x + c.velocity.z * right.z;
+    const targetRoll = -lateral / Math.max(1, run) * 1.6 * DEG + (c.sliding ? 3.5 * DEG : 0);
+    this.roll += (targetRoll - this.roll) * Math.min(1, dtc * 10);
+    this.shake = Math.max(0, this.shake - dtc * 3.2);
+    const sh = this.shake * this.shake * 0.06;
+
+    this.camera.position.set(
+      pos.x + right.x * bobX + (Math.random() - 0.5) * sh,
+      pos.y + this.camHeight - this.landDip + bobY + (Math.random() - 0.5) * sh,
+      pos.z + right.z * bobX,
+    );
+    this.camera.rotation.set(p.pitch, p.yaw, this.roll, 'YXZ');
     if (!p.alive) {
-      this.camera.position.y = p.position.y + 0.4;
+      this.camera.position.y = pos.y + 0.4;
       this.camera.rotation.z = 0.5;
     }
-    this.viewModel.position.z += (-0.64 - this.viewModel.position.z) * 0.25;
-    this.viewModel.rotation.x += (0.02 - this.viewModel.rotation.x) * 0.22;
-    // 歩きに合わせて武器を揺らす
-    const sp = Math.hypot(p.controller.velocity.x, p.controller.velocity.z);
-    const bob = Math.min(1, sp / 5);
-    this.viewModel.position.x = 0.21 + Math.sin(this.anim * 9) * 0.012 * bob;
-    this.viewModel.position.y = -0.18 + Math.abs(Math.cos(this.anim * 9)) * 0.014 * bob;
-    this.viewModel.visible = p.alive;
+
+    // --- FOV: 走り・スライドで広がり、構えで狭まる ---
+    this.adsBlend += ((this.ads ? 1 : 0) - this.adsBlend) * Math.min(1, dtc * 16);
+    let targetFov = 80;
+    if (c.sliding) targetFov = 92;
+    else if (this.sprinting && speed > run * 1.05) targetFov = 88;
+    targetFov = THREE.MathUtils.lerp(targetFov, 58, this.adsBlend);
+    this.fov += (targetFov - this.fov) * Math.min(1, dtc * 10);
+    if (Math.abs(this.camera.fov - this.fov) > 0.01) {
+      this.camera.fov = this.fov;
+      this.camera.updateProjectionMatrix();
+    }
+
+    // --- ビューモデル: 視点の動きに遅れてついてくる揺れ、構えで中央へ ---
+    this.swayX += (THREE.MathUtils.clamp(-dx * 0.0009, -0.05, 0.05) - this.swayX) * Math.min(1, dtc * 12);
+    this.swayY += (THREE.MathUtils.clamp(dy * 0.0009, -0.05, 0.05) - this.swayY) * Math.min(1, dtc * 12);
+    const a = this.adsBlend;
+    const baseX = THREE.MathUtils.lerp(0.21, 0.0, a);
+    const baseY = THREE.MathUtils.lerp(-0.18, -0.13, a);
+    const baseZ = THREE.MathUtils.lerp(-0.64, -0.56, a);
+    const vm = this.viewModel;
+    vm.position.x = baseX + this.swayX + bobX * 0.6 * (1 - a) + (this.sprinting ? 0.05 : 0);
+    vm.position.y = baseY + this.swayY + bobY * 0.5 * (1 - a) - (this.sprinting ? 0.05 : 0) - this.landDip * 0.25;
+    vm.position.z += (baseZ - vm.position.z) * Math.min(1, dtc * 16);
+    const sprintTilt = this.sprinting ? 0.5 : 0;
+    vm.rotation.x += (0.02 - this.swayY * 2 - vm.rotation.x) * Math.min(1, dtc * 14);
+    vm.rotation.y += (THREE.MathUtils.lerp(0.09, 0, a) + sprintTilt - vm.rotation.y) * Math.min(1, dtc * 10);
+    vm.rotation.z += ((c.sliding ? 0.25 : 0) - vm.rotation.z) * Math.min(1, dtc * 10);
+    vm.visible = p.alive;
     this.syncViewWeapon();
+
+    // --- HUD: 拡散に合わせた照準・速度線 ---
+    const w = p.weapon;
+    let spread = w.spread * (this.ads ? 0.45 : 1);
+    if (!c.grounded) spread *= 1.9;
+    else if (speed > run * 1.05) spread *= 1.6;
+    this.hud.setSpread(4 + spread * 7 + (this.ads ? 0 : 3));
+    const fast = THREE.MathUtils.clamp((speed - run) / (this.rules.movement.slide.maxSpeed - run), 0, 1);
+    this.hud.setSpeedLines(c.sliding ? Math.max(0.45, fast) : fast * 0.8);
+    this.hud.setAds(this.adsBlend > 0.5);
   }
 
   private syncNpcMesh(dt: number): void {
@@ -865,7 +1041,6 @@ export class BattleSession {
     this.npcFireFlash = Math.max(0, this.npcFireFlash - dt * 6);
     // 倒れた直後は少しの間その場に残す
     this.npcMesh.group.visible = n.alive || n.respawnTimer > 0 || !n.alive;
-    this.npcMesh.group.position.copy(n.position);
     this.npcMesh.group.rotation.y = n.yaw;
     this.syncNpcWeapon();
     const speed = Math.hypot(n.controller.velocity.x, n.controller.velocity.z);
@@ -881,13 +1056,19 @@ export class BattleSession {
   // ----------------------------------------------------------------- cleanup
 
   dispose(): void {
+    this.camera.fov = 80;
+    this.camera.rotation.z = 0;
+    this.camera.updateProjectionMatrix();
+    this.hud.setSpeedLines(0);
     this.hud.show(false);
     this.hud.clear();
     this.genesis?.finish();
     this.projectiles?.dispose();
     this.vfx?.dispose();
     this.arena?.dispose();
-    this.camera.remove(this.viewModel);
+    this.view.camera.remove(this.viewModel);
+    for (const l of this.viewLights) this.view.scene.remove(l);
+    this.viewLights = [];
     disposeTree(this.viewModel);
     this.viewWeapon = null;
     this.viewWeaponId = '';

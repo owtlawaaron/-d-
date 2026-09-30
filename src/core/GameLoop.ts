@@ -1,6 +1,7 @@
 /** 固定タイムステップのゲームループ。物理と AI のブレを防ぐため update は 60Hz 固定。 */
 export const FIXED_DT = 1 / 60;
 const MAX_FRAME = 0.25; // スパイラル・オブ・デス防止
+const MAX_STEPS = 8;
 
 export class GameLoop {
   private last = 0;
@@ -25,12 +26,15 @@ export class GameLoop {
       this.last = now;
       this.accumulator += frame;
       let steps = 0;
-      while (this.accumulator >= FIXED_DT && steps < 8) {
+      while (this.accumulator >= FIXED_DT && steps < MAX_STEPS) {
         this.onUpdate(FIXED_DT);
         this.accumulator -= FIXED_DT;
         steps++;
       }
-      this.onRender(this.accumulator / FIXED_DT);
+      // 処理しきれなかった分は捨てる。残すと補間係数が 1 を超え、
+      // 描画が未来方向に外挿されてカメラが吹き飛ぶ（フレーム落ち時に画面が真っ黒になる）
+      if (steps === MAX_STEPS) this.accumulator %= FIXED_DT;
+      this.onRender(Math.min(1, this.accumulator / FIXED_DT));
     };
     this.rafId = requestAnimationFrame(tick);
   }

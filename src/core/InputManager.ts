@@ -97,11 +97,20 @@ export class InputManager {
     return this.keys.has(code);
   }
 
-  /** 1フレームの入力を消費する。update の最後に必ず呼ぶ。 */
+  /** 押下・クリックの「瞬間」フラグを消費する。物理ステップの最後に呼ぶ。 */
   endFrame(): void {
-    this.mouseDx = 0;
-    this.mouseDy = 0;
     this.pressedThisFrame.clear();
     this.clickedThisFrame = false;
+  }
+
+  /**
+   * たまったマウス移動量を取り出して 0 に戻す。
+   * 視点は描画フレームごとに動かすので、物理ステップではなくこちらで読む。
+   */
+  consumeMouse(): { dx: number; dy: number } {
+    const out = { dx: this.mouseDx, dy: this.mouseDy };
+    this.mouseDx = 0;
+    this.mouseDy = 0;
+    return out;
   }
 }

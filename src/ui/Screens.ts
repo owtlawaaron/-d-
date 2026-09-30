@@ -39,9 +39,27 @@ export interface SeatingContext {
   onHoverSeat?: (index: number | null) => void;
 }
 
+/** 画面が切り替わるまで有効なキー操作。戻り値を呼ぶと解除される。 */
+function bindKeys(map: Record<string, () => void>): () => void {
+  const handler = (e: KeyboardEvent) => {
+    const fn = map[e.code];
+    if (!fn) return;
+    e.preventDefault();
+    fn();
+  };
+  window.addEventListener('keydown', handler);
+  return () => window.removeEventListener('keydown', handler);
+}
+
 /** タイトル・席替え・結果・成績のフルスクリーン UI。 */
 export class Screens {
   private layer: HTMLElement;
+  private unbind: (() => void) | null = null;
+
+  private keys(map: Record<string, () => void>): void {
+    this.unbind?.();
+    this.unbind = bindKeys(map);
+  }
 
   constructor(parent: HTMLElement) {
     this.layer = el('div');
@@ -49,11 +67,15 @@ export class Screens {
   }
 
   private mount(node: HTMLElement): void {
+    this.unbind?.();
+    this.unbind = null;
     this.layer.innerHTML = '';
     this.layer.append(node);
   }
 
   clear(): void {
+    this.unbind?.();
+    this.unbind = null;
     this.layer.innerHTML = '';
   }
 
@@ -74,18 +96,21 @@ export class Screens {
       const help = el('div', 'panel muted');
       help.innerHTML = `
         <b style="color:#cfe0f0">操作</b><br>
-        <span class="kbd">W A S D</span> 移動　<span class="kbd">Space</span> ジャンプ　
-        <span class="kbd">Shift</span> 歩き　<span class="kbd">Ctrl / C</span> しゃがみ<br>
-        <span class="kbd">左クリック</span> 射撃　<span class="kbd">R</span> リロード　
+        <span class="kbd">W A S D</span> 移動　<span class="kbd">Space</span> ジャンプ（机に乗れる）　
+        <span class="kbd">Shift</span> ダッシュ<br>
+        <span class="kbd">C</span> しゃがみ ／ ダッシュ中に押すと<b>スライディング</b><br>
+        <span class="kbd">左クリック</span> 射撃　<span class="kbd">右クリック</span> 構え（ADS）　<span class="kbd">R</span> リロード　
         <span class="kbd">1 2 3</span> 武器　<span class="kbd">Q</span> 切替<br>
         <span class="kbd">Enter</span> 準備フェーズを早く終える　<span class="kbd">Esc</span> ポーズ<br>
         守り側の準備中は <span class="kbd">左</span> 机バリケード / <span class="kbd">右</span> 教科書シールド / <span class="kbd">T</span> 画鋲`;
-      const btn = el('button', undefined, '登校する');
-      btn.onclick = () => { audio.resume(); audio.play('ui'); resolve(); };
+      const btn = el('button', undefined, '登校する <span class="kbd">Enter</span>');
+      const go = () => { audio.resume(); audio.play('ui'); resolve(); };
+      btn.onclick = go;
       const row = el('div', 'row');
       row.append(btn);
       s.append(help, row);
       this.mount(s);
+      this.keys({ Enter: go, Space: go });
     });
   }
 
@@ -177,8 +202,10 @@ export class Screens {
           </div>
           <div class="stat-line"><span>あなたの推定防衛成功率</span><b>${Math.round(chance * 100)}%</b></div>
           <div class="muted" style="margin-top:8px">守り側は90秒守り切れば勝ち。準備フェーズで机を並べろ。</div>`;
-        const btn = el('button', 'danger', '受けて立つ');
-        btn.onclick = () => finish({ type: 'defend', challenge: c });
+        const btn = el('button', 'danger', '受けて立つ <span class="kbd">Enter</span>');
+        const accept = () => finish({ type: 'defend', challenge: c });
+        btn.onclick = accept;
+        this.keys({ Enter: accept, Space: accept });
         const row = el('div', 'row');
         row.style.marginTop = '12px';
         row.append(btn);
@@ -199,13 +226,18 @@ export class Screens {
             挑戦できるのは1日1回。勝てば席を交換、負ければ2ターン挑戦できず素行点も減る。
           </div>`;
         const row = el('div', 'row');
-        const challengeBtn = el('button', undefined, '挑戦する相手を選ぶ');
+        const challengeBtn = el('button', undefined, '挑戦する相手を選ぶ <span class="kbd">C</span>');
         challengeBtn.disabled = !ctx.canChallenge || targets.length === 0;
         if (!ctx.canChallenge) challengeBtn.title = 'クールダウン中、または素行点が足りない';
-        challengeBtn.onclick = () => { audio.play('ui'); renderPicking(); };
-        const skipBtn = el('button', 'ghost', '今日は我慢する');
-        skipBtn.onclick = () => finish({ type: 'skip' });
+        const openPicker = () => { audio.play('ui'); renderPicking(); };
+        challengeBtn.onclick = openPicker;
+        const skipBtn = el('button', 'ghost', '今日は我慢する <span class="kbd">S</span>');
+        const skip = () => finish({ type: 'skip' });
+        skipBtn.onclick = skip;
         row.append(challengeBtn, skipBtn);
+        const map: Record<string, () => void> = { KeyS: skip };
+        if (!challengeBtn.disabled) { map.KeyC = openPicker; map.Enter = openPicker; }
+        this.keys(map);
         action.append(row);
         cells.forEach((c) => c.classList.remove('targetable'));
         ctx.onHoverSeat?.(null);
@@ -216,19 +248,26 @@ export class Screens {
           <div style="font-weight:800;letter-spacing:.1em;color:#ffb08a">挑戦相手を選べ</div>
           <div class="muted" style="margin:8px 0">自分より良い席の生徒をクリック。推定勝率も見ておけ。</div>`;
         const list = el('div', 'log');
-        for (const t of targets) {
+        const pickMap: Record<string, () => void> = {};
+        targets.forEach((t, i) => {
+          if (i < 9) pickMap[`Digit${i + 1}`] = () => finish({ type: 'challenge', target: t });
+        });
+        for (const [i, t] of targets.entries()) {
           const line = el('div');
           const win = Math.round(ctx.winChance(t) * 100);
           const value = Math.round(room.perceivedValue(player, t.seat));
-          line.innerHTML = `<b>${esc(t.name)}</b> — 席価値 ${value} / 推定勝率 <b>${win}%</b>`;
+          const key = i < 9 ? `<span class="kbd">${i + 1}</span> ` : '';
+          line.innerHTML = `${key}<b>${esc(t.name)}</b> — 席価値 ${value} / 推定勝率 <b>${win}%</b>`;
           line.style.cursor = 'pointer';
           line.onmouseenter = () => ctx.onHoverSeat?.(t.seat.index);
           line.onclick = () => finish({ type: 'challenge', target: t });
           list.append(line);
         }
         action.append(list);
-        const back = el('button', 'ghost', 'やめる');
-        back.onclick = () => { audio.play('ui'); renderIdle(); };
+        const back = el('button', 'ghost', 'やめる <span class="kbd">Esc</span>');
+        const cancel = () => { audio.play('ui'); renderIdle(); };
+        back.onclick = cancel;
+        this.keys({ ...pickMap, Escape: cancel });
         const row = el('div', 'row');
         row.style.marginTop = '10px';
         row.append(back);
@@ -267,12 +306,14 @@ export class Screens {
       }
       if (!lines.length) log.append(el('div', 'muted', '今日は何も起きなかった。'));
       panel.append(log);
-      const btn = el('button', undefined, buttonLabel);
-      btn.onclick = () => { audio.play('ui'); resolve(); };
+      const btn = el('button', undefined, `${buttonLabel} <span class="kbd">Enter</span>`);
+      const go = () => { audio.play('ui'); resolve(); };
+      btn.onclick = go;
       const row = el('div', 'row');
       row.append(btn);
       s.append(panel, row);
       this.mount(s);
+      this.keys({ Enter: go, Space: go });
     });
   }
 
@@ -298,12 +339,14 @@ export class Screens {
         table.append(tr);
       });
       panel.append(table);
-      const btn = el('button', undefined, 'もう一度');
-      btn.onclick = () => { audio.play('ui'); resolve(); };
+      const btn = el('button', undefined, 'もう一度 <span class="kbd">Enter</span>');
+      const go = () => { audio.play('ui'); resolve(); };
+      btn.onclick = go;
       const row = el('div', 'row');
       row.append(btn);
       s.append(panel, row);
       this.mount(s);
+      this.keys({ Enter: go });
     });
   }
 

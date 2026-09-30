@@ -180,3 +180,19 @@ table.rank td, table.rank th { padding: 5px 12px; border-bottom: 1px solid var(-
 table.rank tr.me { color: #8fe4ff; font-weight: 800; }
 
 .loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #05070c; font-size: 13px; letter-spacing: 0.3em; color: #6f8ba6; }
+
+/* ---------- 手触り（照準の拡散・被弾方向・速度線） ---------- */
+.crosshair { width: 28px; height: 28px; transition: width 60ms linear, height 60ms linear; }
+.crosshair.ads i { background: #b8f0ff; }
+.hitmarker.head i { background: #ff5a3c; }
+.dmg-dir { position: absolute; left: 50%; top: 50%; width: 260px; height: 260px; transform: translate(-50%, -50%); opacity: 0; transition: opacity 220ms ease; pointer-events: none; }
+.dmg-dir.on { opacity: 1; }
+.dmg-dir i { position: absolute; left: 50%; top: 0; width: 90px; height: 26px; margin-left: -45px;
+  border-top: 5px solid rgba(255, 70, 40, 0.9); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  filter: drop-shadow(0 0 6px rgba(255, 60, 30, 0.8)); }
+.speedlines { position: absolute; inset: -10%; opacity: 0; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0.0) 0deg 5deg, rgba(255,255,255,0.55) 5deg 5.6deg, rgba(255,255,255,0.0) 5.6deg 11deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 38%, #000 72%);
+  mask-image: radial-gradient(circle at 50% 50%, transparent 38%, #000 72%);
+  transition: opacity 120ms linear; }
+@media (prefers-reduced-motion: reduce) { .speedlines { display: none; } }

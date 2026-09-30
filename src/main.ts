@@ -26,6 +26,9 @@ class Game {
   private readonly bloom: UnrealBloomPass;
   private readonly scene = new THREE.Scene();
   private readonly camera: THREE.PerspectiveCamera;
+  /** 一人称の武器だけを描く別シーン（壁にめり込まないよう深度をクリアして最前面に描く） */
+  private readonly viewScene = new THREE.Scene();
+  private readonly viewCamera = new THREE.PerspectiveCamera(68, 1, 0.01, 10);
   private readonly input: InputManager;
   private readonly hud: Hud;
   private readonly screens: Screens;
@@ -49,12 +52,17 @@ class Game {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
 
-    this.camera = new THREE.PerspectiveCamera(75, 1, 0.05, 200);
+    this.camera = new THREE.PerspectiveCamera(80, 1, 0.05, 200);
     this.scene.background = new THREE.Color(0x0a1018);
     this.scene.fog = new THREE.Fog(0x0a1018, 40, 90);
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+    const viewPass = new RenderPass(this.viewScene, this.viewCamera);
+    viewPass.clear = false;
+    viewPass.clearDepth = true;
+    this.composer.addPass(viewPass);
+    this.viewScene.add(this.viewCamera);
     this.bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.45, 0.7, 0.82);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
@@ -70,7 +78,7 @@ class Game {
     });
     this.resize();
 
-    new GameLoop((dt) => this.update(dt), () => this.render()).start();
+    new GameLoop((dt) => this.update(dt), (alpha) => this.render(alpha)).start();
     // デバッグ・自動テスト用のフック
     (window as unknown as Record<string, unknown>).__seatwars = this;
   }
@@ -115,6 +123,8 @@ class Game {
     this.composer.setSize(w, h);
     this.bloom.resolution.set(w, h);
     this.camera.aspect = w / h;
+    this.viewCamera.aspect = w / h;
+    this.viewCamera.updateProjectionMatrix();
     this.camera.updateProjectionMatrix();
   }
 
@@ -146,7 +156,14 @@ class Game {
     }
   }
 
-  private render(): void {
+  private lastRender = performance.now();
+
+  private render(alpha: number): void {
+    const now = performance.now();
+    const frameDt = (now - this.lastRender) / 1000;
+    this.lastRender = now;
+    if (this.mode === 'BATTLE' && this.battle) this.battle.renderUpdate(frameDt, alpha);
+    else this.input.consumeMouse(); // メニュー中の移動量を戦闘に持ち越さない
     this.composer.render();
   }
 
@@ -225,6 +242,7 @@ class Game {
     const log: string[] = [];
     let playerChallenge: Challenge | null = null;
     let playerRole: 'ATTACK' | 'DEFEND' = 'ATTACK';
+    let playerWon = false;
 
     if (choice.type === 'defend') {
       playerChallenge = choice.challenge;
@@ -246,6 +264,7 @@ class Game {
       const result = await this.runBattle(playerChallenge, playerRole);
       this.challenges.applyOutcome(room, { challenge: playerChallenge, attackerWon: result.attackerWon, simulated: false });
       const won = (playerRole === 'ATTACK') === result.attackerWon;
+      playerWon = won;
       log.push(won
         ? `【あなた】${playerChallenge.attacker.name} vs ${playerChallenge.defender.name} — ${result.reason}。勝ち。`
         : `【あなた】${playerChallenge.attacker.name} vs ${playerChallenge.defender.name} — ${result.reason}。敗北。`);
@@ -275,7 +294,10 @@ class Game {
     }
 
     this.screens.clear();
-    await this.screens.turnResult(`ターン ${room.turn} 終了`, null, log);
+    // 自分が戦ったターンだけ結果画面を出す。それ以外は次の席替え画面のログで見せる
+    if (playerChallenge) {
+      await this.screens.turnResult(playerWon ? 'WIN' : 'LOSE', playerWon, log);
+    }
     return true;
   }
 
@@ -286,7 +308,7 @@ class Game {
 
     const arenaDef = this.reg.arenas.get('classroom_expanded') ?? [...this.reg.arenas.values()][0];
     this.battle = new BattleSession(
-      this.scene, this.camera, this.input, this.reg, this.reg.battleRules,
+      this.scene, this.camera, { scene: this.viewScene, camera: this.viewCamera }, this.input, this.reg, this.reg.battleRules,
       this.hud, arenaDef, this.room.calc.seats,
     );
     const result = await this.battle.start({

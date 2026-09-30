@@ -125,10 +125,18 @@ export interface BattleRules {
     hp: number; height: number; radius: number;
     lateGameWindow: number; lateGameDamageMultiplier: number;
   };
+  attackerPrepareDuration?: number;
+  overDuration?: number;
   movement: {
     walkSpeed: number; crouchSpeed: number; baseRunSpeed: number; runSpeedPerAthletics: number;
-    jumpVelocity: number; gravity: number; stepHeight: number; airControl: number; coyoteTime: number;
-    slide: { duration: number; startSpeed: number; endSpeed: number; capsuleHeight: number };
+    sprintMultiplier: number; adsSpeedMultiplier: number;
+    groundAccel: number; airAccel: number; friction: number; stopSpeed: number;
+    jumpVelocity: number; gravity: number; stepHeight: number; airControl: number;
+    coyoteTime: number; jumpBuffer: number;
+    slide: {
+      duration: number; boost: number; maxSpeed: number; friction: number;
+      steer: number; cooldown: number; capsuleHeight: number;
+    };
     capsule: { radius: number; height: number; eyeHeight: number };
   };
   damage: {

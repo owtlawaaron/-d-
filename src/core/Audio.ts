@@ -4,7 +4,15 @@
  */
 type SfxName =
   | 'chalk' | 'eraser' | 'bow' | 'melee' | 'reload'
-  | 'hit' | 'hitCrystal' | 'death' | 'chime' | 'scan' | 'crystal' | 'ui' | 'win' | 'lose';
+  | 'hit' | 'hitCrystal' | 'death' | 'chime' | 'scan' | 'crystal' | 'ui' | 'win' | 'lose'
+  | 'step' | 'slide' | 'land' | 'kill' | 'headshot';
+
+export interface PlayOptions {
+  /** 0〜1 */
+  volume?: number;
+  /** -1（左）〜 1（右） */
+  pan?: number;
+}
 
 export class AudioSys {
   private ctx: AudioContext | null = null;
@@ -29,8 +37,12 @@ export class AudioSys {
     void this.ctx.resume();
   }
 
+  /** 今鳴らしている音の出力先（音量・定位ノード）。play() の中でだけ差し替える */
+  private dest: AudioNode | null = null;
+
   private tone(freq: number, dur: number, type: OscillatorType, gain: number, slideTo?: number): void {
     if (!this.ctx || !this.master) return;
+    const out = this.dest ?? this.master;
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -39,13 +51,14 @@ export class AudioSys {
     if (slideTo !== undefined) osc.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t + dur);
     g.gain.setValueAtTime(gain, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(g).connect(this.master);
+    osc.connect(g).connect(out);
     osc.start(t);
     osc.stop(t + dur + 0.02);
   }
 
   private noise(dur: number, gain: number, filterHz: number, q = 1): void {
     if (!this.ctx || !this.master || !this.noiseBuf) return;
+    const out = this.dest ?? this.master;
     const t = this.ctx.currentTime;
     const src = this.ctx.createBufferSource();
     src.buffer = this.noiseBuf;
@@ -56,13 +69,31 @@ export class AudioSys {
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(gain, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    src.connect(filter).connect(g).connect(this.master);
+    src.connect(filter).connect(g).connect(out);
     src.start(t);
     src.stop(t + dur + 0.02);
   }
 
-  play(name: SfxName): void {
-    if (!this.enabled || !this.ctx) return;
+  play(name: SfxName, opts: PlayOptions = {}): void {
+    if (!this.enabled || !this.ctx || !this.master) return;
+    const vol = opts.volume ?? 1;
+    const pan = opts.pan ?? 0;
+    if (vol !== 1 || pan !== 0) {
+      const g = this.ctx.createGain();
+      g.gain.value = vol;
+      const panner = this.ctx.createStereoPanner();
+      panner.pan.value = pan;
+      g.connect(panner).connect(this.master);
+      this.dest = g;
+    }
+    try {
+      this.playRaw(name);
+    } finally {
+      this.dest = null;
+    }
+  }
+
+  private playRaw(name: SfxName): void {
     switch (name) {
       case 'chalk': this.noise(0.07, 0.30, 2200, 1.5); this.tone(320, 0.05, 'square', 0.06, 180); break;
       case 'eraser': this.tone(160, 0.18, 'sine', 0.32, 60); this.noise(0.12, 0.16, 700); break;
@@ -78,6 +109,11 @@ export class AudioSys {
       case 'ui': this.tone(660, 0.06, 'square', 0.10); break;
       case 'win': [523, 659, 784, 1047, 1319].forEach((f, i) => window.setTimeout(() => this.tone(f, 0.35, 'triangle', 0.2), i * 90)); break;
       case 'lose': [440, 392, 330, 262].forEach((f, i) => window.setTimeout(() => this.tone(f, 0.45, 'sine', 0.2), i * 150)); break;
+      case 'step': this.noise(0.06, 0.22, 380 + Math.random() * 160, 1.2); break;
+      case 'slide': this.noise(0.5, 0.2, 900, 0.5); this.tone(180, 0.35, 'sawtooth', 0.05, 90); break;
+      case 'land': this.noise(0.1, 0.3, 240, 0.9); this.tone(90, 0.12, 'sine', 0.2, 50); break;
+      case 'kill': this.tone(880, 0.07, 'square', 0.14); window.setTimeout(() => this.tone(1320, 0.14, 'square', 0.14), 60); break;
+      case 'headshot': this.tone(2200, 0.06, 'square', 0.16, 1700); this.noise(0.05, 0.2, 5000); break;
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "id": "default_rules",
   "matchDuration": 90.0,
-  "prepareDuration": 15.0,
+  "prepareDuration": 10.0,
   "genesisDuration": 5.0,
   "attacker": {
     "respawns": 3,
@@ -22,26 +22,37 @@
     "lateGameDamageMultiplier": 1.3
   },
   "movement": {
-    "walkSpeed": 3.0,
-    "crouchSpeed": 1.8,
-    "baseRunSpeed": 4.4,
-    "runSpeedPerAthletics": 0.12,
-    "jumpVelocity": 4.6,
-    "gravity": -18.0,
+    "walkSpeed": 4.2,
+    "crouchSpeed": 3.0,
+    "baseRunSpeed": 6.6,
+    "runSpeedPerAthletics": 0.18,
+    "sprintMultiplier": 1.3,
+    "adsSpeedMultiplier": 0.7,
+    "groundAccel": 12.0,
+    "airAccel": 2.4,
+    "friction": 7.0,
+    "stopSpeed": 2.5,
+    "jumpVelocity": 6.4,
+    "gravity": -21.0,
     "stepHeight": 0.45,
     "airControl": 0.3,
     "coyoteTime": 0.12,
+    "jumpBuffer": 0.12,
     "slide": {
-      "duration": 1.1,
-      "startSpeed": 6.5,
-      "endSpeed": 2.0,
+      "duration": 0.75,
+      "boost": 1.28,
+      "maxSpeed": 13.0,
+      "friction": 1.3,
+      "steer": 1.2,
+      "cooldown": 0.45,
       "capsuleHeight": 0.9
     },
     "capsule": {
       "radius": 0.32,
       "height": 1.7,
       "eyeHeight": 1.6
-    }
+    },
+    "_comment": "アリーナは2倍スケールなので速度も2倍前後に合わせる。走り 6.8〜8.4m/s（体感 3.4〜4.2m/s）、ジャンプ頂点 0.98m＋段差 0.45m で机(1.05m)に乗れる"
   },
   "damage": {
     "headMultiplier": 2.0,
@@ -110,5 +121,7 @@
     "grudgeOnLoss": 25,
     "grudgeDecayPerTurn": 10,
     "loserCooldownTurns": 2
-  }
+  },
+  "attackerPrepareDuration": 3.0,
+  "overDuration": 1.6
 }

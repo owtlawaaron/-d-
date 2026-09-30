@@ -10,7 +10,8 @@ import { floorTexture } from '../render/Textures';
 
 const DESK_SIZE = new THREE.Vector3(1.3, 1.05, 0.9);
 const CHAIR_SCALE = 1.75;
-const CHAIR_OFFSET_Z = 0.92;
+/** 椅子は机に押し込んだ位置。前後の通路を 1.15m 確保する（プレイヤー幅 0.64m） */
+const CHAIR_OFFSET_Z = 0.62;
 /** 席のワールド座標（等倍）→ アリーナ座標への変換 */
 const Z_OFFSET = -1.0;
 
@@ -215,7 +216,7 @@ export function buildArena(def: ArenaDef, seats: Seat[], defenderSeat: Seat): Ar
     // 椅子は低めの当たり判定にして、通路が詰まりすぎないようにする
     world.add(
       new THREE.Vector3(p.x, chairSeatY / 2, p.z + CHAIR_OFFSET_Z),
-      new THREE.Vector3(0.68 * CHAIR_SCALE, chairSeatY, 0.68 * CHAIR_SCALE),
+      new THREE.Vector3(0.55 * CHAIR_SCALE, chairSeatY, 0.55 * CHAIR_SCALE),
       'chair',
     );
     coverPoints.push(new THREE.Vector3(p.x, 0, p.z + DESK_SIZE.z * 1.15));
