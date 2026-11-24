@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>大航海の因果マップ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700;900&family=Yomogi&display=swap">
+<style>
+/* ref: たんご 脱AI Zine（public/assets/zine.css）＋ 星図の紙（星座早見）＋ 航海日誌の半券
+   VOICE: 夜の自習室。先輩風はごく薄く、です・ます。仕組みの言葉を出さない
+   IDEA: 因果の矢印を「星座」として夜空に刷った星図。1語＝1つの星、覚えるほど明るく灯る
+   PICTURE: 上半分を占める因果の星座図（出来事=星・矢印=星座線）。押すと原因と結果の線だけが光る
+   COLOUR and TYPE: 黒＋紫のダークリソ（HSLのみ・紫→青グラデ無し）・差し色 teal／Noto Sans JP 900・数字は Anton・手書き Yomogi
+   LAYOUT: 題→今日の問題（主役ボタン1つ）→星座図→練習の棚→その他（畳む）。出題中は世界観を沈め、結果で開放する */
+:root{
+  color-scheme:dark;
+  --paper:hsl(276,15%,8%); --paper-2:hsl(276,13%,12%); --paper-edge:hsl(276,11%,23%); --paper-deep:hsl(276,17%,6%);
+  --ink:hsl(280,18%,93%); --ink-soft:hsl(280,10%,74%); --pencil:hsl(280,8%,66%);
+  --pink:hsl(281,62%,66%); --pink-wash:hsla(281,62%,66%,.16);
+  --teal:hsl(168,42%,52%); --teal-wash:hsla(168,42%,52%,.14);
+  --good:hsl(150,50%,58%); --bad:hsl(2,78%,66%); --warn:hsl(42,78%,62%);
+  --good-wash:hsla(150,50%,58%,.14); --bad-wash:hsla(2,78%,64%,.10);
+  --card:hsl(276,14%,11%); --line:hsl(276,11%,23%); --edge-ui:hsl(276,10%,48%); --edge-soft:hsl(276,11%,38%);
+  --stripe-a:hsl(276,17%,5%); --stripe-b:hsl(281,58%,45%);
+  --stripes:repeating-linear-gradient(135deg,var(--stripe-a) 0 8px,var(--stripe-b) 8px 16px);
+  --shadow-hand:2px 3px 0 hsl(281,45%,26%),5px 9px 20px hsla(0,0%,0%,.55);
+  --shadow-btn:0 1px 2px hsla(276,30%,2%,.5),0 6px 16px hsla(276,30%,2%,.35);
+  --r-card:14px 7px 13px 8px; --r-big:16px 8px 16px 8px; --r-btn:9px 6px 9px 6px; --r-choice:10px 6px 10px 6px; --r-chip:8px 4px 8px 4px;
+  --tilt-a:-1.1deg; --tilt-b:.7deg; --tilt-c:-.4deg;
+  --f1:5px; --f2:8px; --f3:13px; --f4:21px; --f5:34px; --f6:55px; --s2:11px; --s3:18px; --s4:29px;
+  --dur-1:100ms; --dur-2:200ms; --dur-3:300ms;
+  --ease-enter:cubic-bezier(.22,1,.36,1); --ease-std:cubic-bezier(.4,0,.2,1); --ease-exit:cubic-bezier(.4,0,1,1); --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --f-disp:'Anton','Noto Sans JP',sans-serif; --f-body:'Noto Sans JP','Hiragino Sans','Yu Gothic',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace; --f-hand:'Yomogi','Noto Sans JP',cursive;
+  --t-min:.875rem; --h-main:44px; --h-btn:40px; --h-sm:36px;
+  --sky:hsl(276,17%,6%); --star-off:hsl(280,8%,52%); --star-mid:hsl(45,80%,66%); --star-on:hsl(281,62%,72%);
+  --e-cause:hsl(280,14%,78%); --e-part:hsl(168,42%,56%); --e-cond:hsl(280,8%,60%); --e-adjust:hsl(42,78%,62%);
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+}
+/* 明るい画面＝白い紙にエメラルド1色で刷った星図（たんご docs/DESIGN-LIGHT.md と同じ反転） */
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){
+  color-scheme:light;
+  --paper:hsl(150,20%,97%); --paper-2:hsl(150,16%,93%); --paper-edge:hsl(152,12%,82%); --paper-deep:hsl(150,22%,95%);
+  --ink:hsl(160,30%,11%); --ink-soft:hsl(160,12%,28%); --pencil:hsl(160,8%,36%);
+  --pink:hsl(158,72%,26%); --pink-wash:hsla(158,72%,30%,.11); --teal:hsl(270,42%,46%); --teal-wash:hsla(270,42%,46%,.10);
+  --good:hsl(138,58%,26%); --bad:hsl(2,70%,44%); --warn:hsl(34,85%,32%); --good-wash:hsla(138,58%,32%,.12); --bad-wash:hsla(2,70%,50%,.08);
+  --card:hsl(150,25%,99%); --line:hsl(152,12%,82%); --edge-ui:hsl(156,10%,46%); --edge-soft:hsl(156,10%,56%);
+  --stripe-a:hsl(150,25%,99%); --stripe-b:hsl(158,62%,32%);
+  --shadow-hand:2px 3px 0 hsl(156,30%,80%),5px 9px 20px hsla(160,30%,15%,.10);
+  --shadow-btn:0 1px 2px hsla(160,30%,15%,.18),0 6px 16px hsla(160,30%,15%,.12);
+  --sky:hsl(150,22%,95%); --star-off:hsl(160,6%,62%); --star-mid:hsl(40,80%,40%); --star-on:hsl(158,72%,28%);
+  --e-cause:hsl(160,20%,30%); --e-part:hsl(270,42%,46%); --e-cond:hsl(160,8%,50%); --e-adjust:hsl(34,85%,36%);
+}}
+:root[data-theme=light]{
+  color-scheme:light;
+  --paper:hsl(150,20%,97%); --paper-2:hsl(150,16%,93%); --paper-edge:hsl(152,12%,82%); --paper-deep:hsl(150,22%,95%);
+  --ink:hsl(160,30%,11%); --ink-soft:hsl(160,12%,28%); --pencil:hsl(160,8%,36%);
+  --pink:hsl(158,72%,26%); --pink-wash:hsla(158,72%,30%,.11); --teal:hsl(270,42%,46%); --teal-wash:hsla(270,42%,46%,.10);
+  --good:hsl(138,58%,26%); --bad:hsl(2,70%,44%); --warn:hsl(34,85%,32%); --good-wash:hsla(138,58%,32%,.12); --bad-wash:hsla(2,70%,50%,.08);
+  --card:hsl(150,25%,99%); --line:hsl(152,12%,82%); --edge-ui:hsl(156,10%,46%); --edge-soft:hsl(156,10%,56%);
+  --stripe-a:hsl(150,25%,99%); --stripe-b:hsl(158,62%,32%);
+  --shadow-hand:2px 3px 0 hsl(156,30%,80%),5px 9px 20px hsla(160,30%,15%,.10);
+  --shadow-btn:0 1px 2px hsla(160,30%,15%,.18),0 6px 16px hsla(160,30%,15%,.12);
+  --sky:hsl(150,22%,95%); --star-off:hsl(160,6%,62%); --star-mid:hsl(40,80%,40%); --star-on:hsl(158,72%,28%);
+  --e-cause:hsl(160,20%,30%); --e-part:hsl(270,42%,46%); --e-cond:hsl(160,8%,50%); --e-adjust:hsl(34,85%,36%);
+}
+
+/* ── 基盤 ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;min-width:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px;scroll-padding-bottom:180px}
+body{min-height:100vh;background:var(--paper);background-image:var(--grain);color:var(--ink);font-family:var(--f-body);font-size:1rem;line-height:1.75;overflow-x:clip;
+  padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(16px,4vw)}
+.num{font-family:var(--f-disp);font-weight:400;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-soft)}
+.hand{font-family:var(--f-hand)}
+
+/* ── ボタンの3段（zine.css と同じ）主役 .btn.main は1画面1つ ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--h-btn);padding:0 16px;font:700 var(--t-min)/1.2 var(--f-body);
+  border:1.5px solid var(--ink);border-radius:var(--r-btn);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap;
+  transition:background-color var(--dur-1) var(--ease-std),border-color var(--dur-1) var(--ease-std),color var(--dur-1) var(--ease-std),transform var(--dur-2) var(--ease-spring)}
+.btn.main{min-height:52px;padding:0 24px;font-size:1.0625rem;font-weight:900;background:var(--ink);color:var(--paper);border-color:var(--ink);box-shadow:var(--shadow-btn)}
+.btn.main svg{width:18px;height:18px}
+.btn.sm{min-height:var(--h-sm);padding:0 12px;border-color:var(--edge-soft);color:var(--ink-soft)}
+.btn.text{border-color:transparent;background:none;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;padding:0 8px}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+@media (hover:hover){.btn:hover{background:var(--pink-wash)}.btn.main:hover{background:var(--pink);border-color:var(--pink)}.btn.text:hover{background:none;color:var(--ink)}}
+/* [motion:press] trigger:押した瞬間 / total:100ms沈む＋200ms戻る / peak:100ms / easing:--ease-std→--ease-spring / cleanup:離すと transform が戻るだけ */
+.btn:active,.choice:not([aria-disabled=true]):active,.star-btn:active,.shelf-item:active{transform:scale(.97);transition-duration:var(--dur-1);transition-timing-function:var(--ease-std)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.row{display:flex;flex-wrap:wrap;gap:var(--f2) var(--s2);align-items:center}
+
+/* ── 手の痕跡：トンボ ── */
+.crop{position:absolute;width:16px;height:16px;opacity:.5;pointer-events:none}
+.crop path{stroke:var(--ink);stroke-width:1.2;fill:none}
+.crop.tl{top:9px;left:9px}.crop.tr{top:9px;right:9px;transform:scaleX(-1)}.crop.bl{bottom:9px;left:9px;transform:scaleY(-1)}.crop.br{bottom:9px;right:9px;transform:scale(-1)}
+
+/* ── 画面の入れ替え（0.4秒以下） ──
+   [motion:view-in] trigger:画面が変わる / total:220ms / peak:220ms / easing:--ease-enter / cleanup:animationend で何も残らない（fill:both の終端＝素の状態） */
+.view{animation:view-in 220ms var(--ease-enter) both}
+@keyframes view-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ══ 入口 ══ */
+.top{position:relative;padding:var(--s4) 0 var(--f4)}
+.top .wrap{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--f4) var(--f5);align-items:end}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font:400 1rem/1 var(--f-hand);color:var(--teal);transform:rotate(var(--tilt-a));transform-origin:left}
+.eyebrow svg{width:18px;height:18px}
+h1{font-weight:900;font-size:clamp(2rem,5.2vw,3.25rem);line-height:1.08;letter-spacing:.01em;text-wrap:balance;margin:var(--f2) 0 var(--f3)}
+h1 .ln{display:inline-block}
+.lead{color:var(--ink-soft);max-width:34em;text-wrap:pretty}
+.today{position:relative;background:var(--card);border:1.5px solid var(--edge-soft);border-radius:var(--r-big);padding:var(--f4) var(--f4) var(--f4) calc(var(--f4) + 12px);box-shadow:var(--shadow-hand);transform:rotate(var(--tilt-b));overflow:hidden}
+.today::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;background-image:var(--stripes);opacity:.9}
+.today h2{font-size:1.25rem;font-weight:900;line-height:1.35}
+.today .sub{color:var(--ink-soft);font-size:var(--t-min);margin:4px 0 var(--f3)}
+.today .btn.main{width:100%}
+.meter{display:flex;align-items:baseline;gap:10px;margin-bottom:var(--f3)}
+.meter .num{font-size:2.6rem;line-height:1}
+.meter .of{color:var(--ink-soft);font-size:var(--t-min)}
+.dots{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:var(--f3)}
+.dots i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--star-off)}
+.dots i.mid{border-color:var(--star-mid);background:radial-gradient(circle,var(--star-mid) 0 35%,transparent 40%)}
+.dots i.done{border-color:var(--star-on);background:var(--star-on);box-shadow:0 0 6px var(--star-on)}
+
+/* ── 星座図（因果マップ） ── */
+.chart{padding:var(--f3) 0 var(--f4)}
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:var(--f2) var(--f4);margin-bottom:var(--f3)}
+.chart-head h2{font-size:1.5rem;font-weight:900;line-height:1.3}
+.chart-head p{color:var(--ink-soft);font-size:var(--t-min)}
+.sky-scroll{position:relative;overflow-x:auto;overscroll-behavior-x:contain;border:1.5px solid var(--line);border-radius:var(--r-card);background:var(--sky);scrollbar-width:thin;scrollbar-color:var(--edge-soft) transparent}
+.sky{position:relative;width:1192px;height:688px;margin:0 auto}
+.sky>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.col-lb{position:absolute;top:14px;font:400 var(--t-min)/1 var(--f-hand);color:var(--pencil);white-space:nowrap}
+.bgstar{fill:var(--ink);opacity:.22}
+/* [motion:twinkle] AMBIENT trigger:常時 / total:5〜8s 周期 / peak:中間 / easing:ease-in-out相当 --ease-std / cleanup:reduced-motion で止まる。光は1秒に3回未満 */
+.bgstar.tw{animation:twinkle 6.2s cubic-bezier(.4,0,.2,1) infinite alternate}
+@keyframes twinkle{from{opacity:.08}to{opacity:.45}}
+.edge{fill:none;stroke-width:1.6;stroke-linecap:round;transition:opacity var(--dur-2) var(--ease-std),stroke-width var(--dur-2) var(--ease-std)}
+.edge.cause,.edge.pre,.edge.result{stroke:var(--e-cause)}
+.edge.part{stroke:var(--e-part);stroke-dasharray:2 5;stroke-width:2.2}
+.edge.cond{stroke:var(--e-cond);stroke-dasharray:8 6}
+.edge.adjust{stroke:var(--e-adjust);stroke-dasharray:12 4 2 4}
+.sky.has-sel .edge{opacity:.14}
+.sky.has-sel .edge.hi{opacity:1;stroke-width:3}
+/* [motion:flow] AMBIENT trigger:星をえらぶ / total:1.6s 周期 / peak:— / easing:linear（流れ） / cleanup:えらび直すと class が外れる */
+.sky.has-sel .edge.hi.cause,.sky.has-sel .edge.hi.pre,.sky.has-sel .edge.hi.result{stroke-dasharray:10 6;animation:flow 1.6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-32}}
+.star-btn{position:absolute;width:172px;height:62px;display:grid;grid-template-columns:22px minmax(0,1fr);grid-template-rows:auto auto;column-gap:6px;align-content:center;
+  padding:4px 4px 4px 4px;border:1.5px solid transparent;border-radius:var(--r-chip);background:transparent;cursor:pointer;text-align:left;color:var(--ink);
+  transition:border-color var(--dur-1) var(--ease-std),background-color var(--dur-1) var(--ease-std),transform var(--dur-2) var(--ease-spring)}
+.star-btn .st{grid-row:1/3;width:22px;height:22px;align-self:center}
+.legend .st{width:20px;height:20px;display:block}
+.star-btn .st circle{transition:fill var(--dur-3) var(--ease-std),stroke var(--dur-3) var(--ease-std)}
+.star-btn .l1,.star-btn .l2{font-size:.9375rem;line-height:1.35;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.star-btn .l1{font-weight:700}
+.star-btn .l2{color:var(--ink-soft)}
+.star-btn .tn{position:absolute;right:6px;top:-11px;font:700 .8125rem/1 var(--f-body);color:var(--teal);background:var(--sky);padding:1px 4px;border-radius:4px;letter-spacing:.04em}
+@media (hover:hover){.star-btn:hover{border-color:var(--edge-ui);background:var(--pink-wash)}}
+.star-btn[aria-pressed=true]{border-color:var(--pink);background:var(--pink-wash)}
+.star-btn[data-m=none] .st .core{fill:none;stroke:var(--star-off)}
+.star-btn[data-m=mid] .st .core{fill:var(--star-mid);stroke:var(--star-mid)}
+.star-btn[data-m=done] .st .core{fill:var(--star-on);stroke:var(--star-on)}
+.star-btn .st .halo{fill:none;stroke:none}
+.star-btn[data-m=done] .st .halo{stroke:var(--star-on);opacity:.5}
+.star-btn[data-m=done] .st .ray{stroke:var(--star-on)}
+.star-btn .st .ray{stroke:none;stroke-width:1.4;stroke-linecap:round}
+.legend{display:flex;flex-wrap:wrap;gap:6px var(--f4);margin-top:var(--f3);font-size:var(--t-min);color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend svg{flex:none}
+.pan-hint{display:none;font-size:var(--t-min);color:var(--ink-soft);margin-top:6px}
+@media (max-width:1240px){.pan-hint{display:block}}
+
+/* 星をえらんだ時の札 */
+.detail{position:relative;margin-top:var(--f4);background:var(--card);border:1.5px solid var(--edge-soft);border-radius:var(--r-card);box-shadow:var(--shadow-hand);padding:var(--f4);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:var(--f3) var(--f5);
+  animation:view-in 220ms var(--ease-enter) both}
+.detail h3{font-size:1.25rem;font-weight:900;line-height:1.35;outline:none}
+.detail .desc{margin:6px 0 var(--f3);text-wrap:pretty}
+.terms-chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:2px 10px;border:1.5px solid var(--edge-soft);border-radius:var(--r-chip);font-size:var(--t-min);font-weight:700;white-space:nowrap}
+.chip .m{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--star-off)}
+.chip .m.mid{background:var(--star-mid);border-color:var(--star-mid)}
+.chip .m.done{background:var(--star-on);border-color:var(--star-on)}
+.links h4{font-size:var(--t-min);color:var(--ink-soft);font-weight:700;margin-bottom:4px}
+.links ul{list-style:none;display:grid;gap:6px;margin-bottom:var(--f3)}
+.links li{font-size:var(--t-min);line-height:1.6;padding-left:12px;border-left:3px solid var(--edge-soft)}
+.links li b{font-weight:700}
+.links li .ty{color:var(--teal);font-weight:700;margin-right:6px}
+.links li.part{border-left-color:var(--e-part)}.links li.cond{border-left-color:var(--e-cond)}.links li.adjust{border-left-color:var(--e-adjust)}
+.detail .x{position:absolute;right:8px;top:8px;min-width:44px}
+
+/* 練習の棚 */
+.shelf{padding:var(--f4) 0 var(--f5)}
+.shelf h2{font-size:1.5rem;font-weight:900;line-height:1.3;margin-bottom:4px}
+.shelf>.wrap>p{color:var(--ink-soft);font-size:var(--t-min);margin-bottom:var(--f3)}
+.shelf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--f3)}
+.shelf-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px var(--f3);align-items:center;min-height:88px;padding:var(--f3) var(--f3) var(--f3) var(--f4);text-align:left;
+  background:var(--card);border:1.5px solid var(--edge-soft);border-radius:var(--r-card);cursor:pointer;
+  transition:border-color var(--dur-1) var(--ease-std),transform var(--dur-2) var(--ease-spring),box-shadow var(--dur-2) var(--ease-std)}
+.shelf-item:nth-child(3n+1){transform:rotate(-.5deg)}.shelf-item:nth-child(3n+2){transform:rotate(.4deg)}
+@media (hover:hover){.shelf-item:hover{border-color:var(--pink);box-shadow:var(--shadow-hand)}}
+.shelf-item .t{font-weight:900;font-size:1.0625rem;line-height:1.35}
+.shelf-item .d{grid-column:1;color:var(--ink-soft);font-size:var(--t-min);line-height:1.5}
+.shelf-item .p{grid-row:1/3;grid-column:2;text-align:right;font-size:var(--t-min);color:var(--ink-soft);line-height:1.2}
+.shelf-item .p .num{display:block;font-size:1.7rem;color:var(--ink)}
+.shelf-item .bar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px}
+.shelf-item .bar i{display:block;height:100%;background:var(--pink);border-radius:2px}
+.shelf-item::before{content:"";position:absolute;left:8px;top:14px;bottom:14px;width:3px;border-radius:2px;background:var(--teal);opacity:.7}
+
+/* その他（まれな操作は畳む） */
+.more{padding:0 0 var(--f6)}
+.more details{border-top:1.5px dashed var(--edge-soft);padding-top:var(--f2)}
+summary.disc{display:flex;align-items:center;gap:10px;list-style:none;cursor:pointer;min-height:48px;font-weight:700}
+summary.disc::-webkit-details-marker{display:none}
+summary.disc::before{content:"";flex:none;width:7px;height:7px;margin:0 3px 0 2px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform var(--dur-2) var(--ease-std)}
+details[open]>summary.disc::before{transform:rotate(45deg)}
+.settings{display:grid;gap:var(--f2);padding:var(--f2) 0 var(--f4)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:var(--f3);min-height:48px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.switch input{appearance:none;flex:none;width:48px;height:28px;border-radius:14px;border:1.5px solid var(--edge-ui);background:var(--paper-2);position:relative;cursor:pointer;transition:background-color var(--dur-2) var(--ease-std)}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:var(--ink-soft);transition:transform var(--dur-2) var(--ease-spring),background-color var(--dur-2) var(--ease-std)}
+.switch input:checked{background:var(--pink);border-color:var(--pink)}
+.switch input:checked::after{transform:translateX(20px);background:var(--paper)}
+.switch .d{display:block;font-size:var(--t-min);color:var(--ink-soft)}
+.tbl-wrap{overflow-x:auto;margin:var(--f2) 0 var(--f4)}
+table{border-collapse:collapse;width:100%;font-size:var(--t-min)}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-soft);font-weight:700}
+td .chip{min-height:26px}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:var(--f3);border:1.5px dashed var(--bad);border-radius:var(--r-card);margin-top:var(--f2)}
+.foot{color:var(--pencil);font-size:var(--t-min);padding:var(--f4) 0 var(--f5);border-top:1px solid var(--line)}
+
+/* ══ 出題中（世界観を沈める） ══ */
+.play{min-height:100vh;display:flex;flex-direction:column}
+.pbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line)}
+.pbar .wrap{display:flex;align-items:center;gap:var(--f3);min-height:60px;max-width:760px}
+.pbar .x{min-width:44px;padding:0 10px}
+.pbar .x svg{width:18px;height:18px}
+.steps{flex:1;display:flex;gap:3px;align-items:center}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line);transition:background-color var(--dur-3) var(--ease-std)}
+.steps i.ok{background:var(--good)}.steps i.ng{background:var(--bad)}.steps i.cur{background:var(--ink-soft)}
+.pbar .cnt{font-family:var(--f-mono);font-size:var(--t-min);color:var(--ink-soft);white-space:nowrap}
+.stage{flex:1;padding:var(--f4) 0 220px}
+.stage .wrap{max-width:760px}
+.qcard{position:relative;background:var(--card);border:1.5px solid var(--edge-soft);border-radius:var(--r-big);padding:var(--f4) var(--f4) var(--f4) calc(var(--f4) + 10px);box-shadow:var(--shadow-hand);overflow:hidden}
+.qcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background-image:var(--stripes);opacity:.85}
+/* [motion:card-in] REACTIVE trigger:次の問題 / total:240ms / peak:240ms / easing:--ease-enter / cleanup:fill both の終端＝素の状態 */
+.qcard.in{animation:card-in 240ms var(--ease-enter) both}
+@keyframes card-in{from{opacity:0;transform:translateX(26px) rotate(.6deg)}to{opacity:1;transform:none}}
+.qkind{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:var(--f3);font-size:var(--t-min);color:var(--ink-soft)}
+.qkind .k{font-weight:700;color:var(--teal);border:1.5px solid var(--teal);border-radius:var(--r-chip);padding:1px 8px}
+.qkind .lv{font-family:var(--f-hand);color:var(--pencil)}
+.prompt{font-size:1.25rem;font-weight:700;line-height:1.6;text-wrap:pretty;outline:none}
+.prompt b{color:var(--pink)}
+.clue{margin:var(--f3) 0 var(--f4);padding:var(--f3) var(--f3) var(--f3) var(--f4);background:var(--paper-2);border-radius:var(--r-chip);border-left:3px solid var(--pink);font-size:1.0625rem;line-height:1.75}
+.clue .hint{display:block;margin-top:6px;font-size:var(--t-min);color:var(--ink-soft)}
+.statement{margin:var(--f3) 0 var(--f4);padding:var(--f3) var(--f4);border:1.5px dashed var(--edge-ui);border-radius:var(--r-card);font-size:1.125rem;font-weight:700;line-height:1.7;transform:rotate(var(--tilt-c))}
+.kbd-hint{margin-top:var(--f3);font-size:var(--t-min);color:var(--pencil)}
+.kbd-hint kbd{font:700 .8125rem/1 var(--f-mono);border:1px solid var(--edge-soft);border-bottom-width:2px;border-radius:4px;padding:2px 5px;color:var(--ink-soft)}
+@media (pointer:coarse){.kbd-hint{display:none}}
+
+/* 4択（たんご choice.js と同じ部品） */
+.choices{display:flex;flex-direction:column;gap:var(--f2)}
+.choice{display:flex;align-items:center;gap:var(--s2);width:100%;min-height:56px;padding:var(--f2) var(--f3);text-align:left;font:400 1.0625rem/1.5 var(--f-body);color:var(--ink);
+  background:var(--paper);border:1.5px solid var(--edge-ui);border-radius:var(--r-choice);cursor:pointer;
+  transition:border-color var(--dur-1) var(--ease-std),background-color var(--dur-1) var(--ease-std),color var(--dur-1) var(--ease-std),transform var(--dur-2) var(--ease-spring)}
+.choice-k{flex:none;display:grid;place-items:center;width:28px;height:28px;border:1.5px solid var(--edge-soft);border-radius:50%;font:700 var(--t-min)/1 var(--f-mono);color:var(--ink-soft)}
+.choice{flex-wrap:wrap}
+.choice-t{flex:1 1 11em;min-width:0}
+.choice-t small{display:block;font-size:var(--t-min);color:var(--ink-soft);line-height:1.5}
+.choice-m{flex:none;width:24px;height:24px;display:grid;place-items:center}
+.choice-m svg{width:100%;height:100%}
+@media (hover:hover){.choice:not([aria-disabled=true]):hover{border-color:var(--ink)}}
+.choice[aria-disabled=true]{cursor:default}
+.choice.picked{border-color:var(--pink);background:var(--pink-wash)}
+.choice.correct,.choice.reveal{border-color:var(--good);background:var(--good-wash)}
+.choice.reveal{transition-delay:var(--dur-1)}
+.choice.wrong{border-color:var(--bad);border-width:2px}
+.choice.done{color:var(--ink-soft);border-color:var(--line)}
+/* [motion:ok-mark] REACTIVE trigger:正解 / total:300ms / peak:180ms / easing:--ease-spring / cleanup:fill both */
+.choice.correct .choice-m{color:var(--good);animation:pop 300ms var(--ease-spring) both}
+.choice.wrong .choice-m{color:var(--bad);animation:fadein 200ms var(--ease-std) both}
+.choice.wrong{animation:nudge 260ms var(--ease-std)}
+.choice-note{flex:none;font:700 var(--t-min)/1 var(--f-body);color:var(--good);border:1.5px solid var(--good);border-radius:var(--r-chip);padding:5px 7px;animation:fadein 200ms var(--ease-enter) 100ms both}
+.choice-trap{flex:none;font:700 var(--t-min)/1.2 var(--f-body);color:var(--bad);border:1.5px solid var(--bad);border-radius:var(--r-chip);padding:4px 7px;animation:fadein 200ms var(--ease-enter) 100ms both;white-space:nowrap}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+/* [motion:nudge] REACTIVE trigger:まちがい / total:260ms / peak:65ms / easing:--ease-std / cleanup:終われば素の位置。揺れは2往復だけ */
+@keyframes nudge{25%{transform:translateX(-4px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.choices.judge .choice-t b{font-weight:900}
+
+/* 書いて思い出す */
+.recall{display:grid;gap:var(--f2)}
+.recall label{font-weight:700;font-size:var(--t-min);color:var(--ink-soft)}
+.recall .in-row{display:flex;gap:var(--f2)}
+.recall input{flex:1;min-height:56px;padding:0 var(--f3);font-size:1.25rem;font-weight:700;background:var(--paper);border:1.5px solid var(--edge-ui);border-radius:8px;color:var(--ink)}
+.recall input:focus{outline:none;border:2px solid var(--pink)}
+.recall input.ok{border:2px solid var(--good);background:var(--good-wash)}
+.recall input.ng{border:2px solid var(--bad)}
+.recall .tools{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.recall .hint-out{font-size:var(--t-min);color:var(--teal);font-weight:700}
+
+/* 地図 */
+.map-scroll{overflow-x:auto;border:1.5px solid var(--line);border-radius:var(--r-card);margin:var(--f3) 0;scrollbar-width:thin;overscroll-behavior-x:contain}
+.map{position:relative;width:100%;min-width:860px;aspect-ratio:1300/535;background:var(--paper-deep);overflow:hidden}
+.map img{position:absolute;inset:0;width:100%;height:100%;filter:grayscale(1) invert(.9) contrast(.85) brightness(.85);opacity:.9}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]) .map img{filter:grayscale(1) contrast(.9);opacity:.85}}
+:root[data-theme=light] .map img{filter:grayscale(1) contrast(.9);opacity:.85}
+.map::after{content:"";position:absolute;inset:0;background:var(--pink-wash);mix-blend-mode:color;pointer-events:none}
+.map svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.pin{position:absolute;z-index:2;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;border:2px solid var(--paper);background:var(--ink);color:var(--paper);
+  font:700 .9375rem/1 var(--f-mono);cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 6px hsla(0,0%,0%,.4);
+  transition:transform var(--dur-2) var(--ease-spring),background-color var(--dur-1) var(--ease-std)}
+.pin::before{content:"";position:absolute;inset:-6px;border-radius:50%}
+.pin[aria-pressed=true]{background:var(--pink);transform:translate(-50%,-50%) scale(1.18)}
+.pin.is-correct{background:var(--good)}.pin.is-wrong{background:var(--bad)}
+@media (pointer:coarse){.pin{width:44px;height:44px}.map{min-width:1040px}}
+.pin-name{position:absolute;z-index:3;transform:translate(-50%,-170%);background:var(--paper);color:var(--ink);font-size:var(--t-min);font-weight:700;padding:1px 8px;border-radius:4px;white-space:nowrap;pointer-events:none;border:1px solid var(--edge-ui)}
+.route{fill:none;stroke:var(--warn);stroke-width:3;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+/* [motion:route] CELEBRATION trigger:地図の答え合わせ / total:1.4s / peak:終わり / easing:--ease-enter / cleanup:forwards で描き終わりのまま */
+.route{stroke-dasharray:2000;stroke-dashoffset:2000;animation:draw 1400ms cubic-bezier(.22,1,.36,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.place-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--f2)}
+.place-grid .choice{min-height:52px}
+.check-row{margin-top:var(--f4);display:flex;justify-content:flex-end}
+
+/* つなぐ（並べ替え） */
+.chain{list-style:none;display:grid;gap:var(--f2);margin:var(--f3) 0}
+.chain li{display:grid;grid-template-columns:44px 28px minmax(0,1fr) auto;gap:var(--f2);align-items:center;min-height:60px;padding:6px 6px 6px 0;background:var(--paper);
+  border:1.5px solid var(--edge-ui);border-radius:var(--r-choice);transition:border-color var(--dur-1) var(--ease-std),background-color var(--dur-1) var(--ease-std),box-shadow var(--dur-2) var(--ease-std)}
+.chain li .grip{display:grid;place-items:center;width:44px;height:48px;cursor:grab;touch-action:none;color:var(--ink-soft);border:0;background:none}
+.chain li .grip svg{width:20px;height:20px}
+.chain li .no{font:400 1.25rem/1 var(--f-disp);color:var(--pink);text-align:center}
+.chain li .t{font-size:1rem;line-height:1.5}
+.chain li .mv{display:flex;gap:4px}
+.chain li .mv .btn{min-width:44px;min-height:44px;padding:0}
+.chain li .mv .btn svg{width:18px;height:18px}
+.chain li.drag{border-color:var(--pink);background:var(--card);box-shadow:var(--shadow-hand);z-index:5;position:relative;transition:none;cursor:grabbing}
+.chain li.is-correct{border-color:var(--good);background:var(--good-wash)}
+.chain li.is-wrong{border-color:var(--bad);border-width:2px}
+.chain.locked li{grid-template-columns:28px minmax(0,1fr) auto;padding-left:10px}
+.chain.locked .grip,.chain.locked .mv{display:none}
+.linkq{margin-top:var(--f4);padding-top:var(--f3);border-top:1.5px dashed var(--edge-soft)}
+.linkq .lk{font-weight:700;margin-bottom:var(--f2);line-height:1.6}
+.linkq .lk .arr{color:var(--pink);margin:0 4px}
+
+
+/* ── 連想の糸（拡大地図＋自問自答）──
+   ref: 自分で問いを立てて答える「精緻化質問」＋ 場所の記憶（地図と言葉をセットに）
+   [motion:thread] REACTIVE trigger:糸をたぐる / total:260ms / peak:260ms / easing:--ease-enter / cleanup:fill both */
+.assoc{margin:var(--f3) 0 var(--f4);padding:var(--f3);border:1.5px dashed var(--edge-soft);border-radius:var(--r-card);background:var(--paper-2)}
+.as-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:var(--f2)}
+.as-t{font-size:1.0625rem;color:var(--teal)}
+.as-chips{display:flex;flex-wrap:wrap;gap:6px}
+.seg{min-height:36px;padding:0 10px;border:1.5px solid var(--edge-soft);border-radius:var(--r-chip);background:transparent;color:var(--ink-soft);font:700 var(--t-min) var(--f-body);cursor:pointer}
+.seg[aria-pressed=true]{background:var(--pink-wash);border-color:var(--pink);color:var(--ink)}
+@media (pointer:coarse){.seg{min-height:44px}}
+.amap-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;max-width:640px;border-radius:var(--r-chip)}
+.amap{position:relative;width:100%;min-width:500px;overflow:hidden;border-radius:var(--r-chip);background:var(--paper-deep);border:1px solid var(--line)}
+.amap img{position:absolute;max-width:none;height:auto;filter:grayscale(1) invert(.9) contrast(.85) brightness(.85);opacity:.9}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]) .amap img{filter:grayscale(1) contrast(.9);opacity:.85}}
+:root[data-theme=light] .amap img{filter:grayscale(1) contrast(.9);opacity:.85}
+.amap svg{position:absolute;inset:0;width:100%;height:100%}
+.aarea{fill:var(--pink-wash);stroke:var(--pink);stroke-width:1.5;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.aline{fill:none;stroke:var(--warn);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.aline.route2{stroke-dasharray:6 4}
+.aline.back{stroke-dasharray:2 5;opacity:.8}
+.aline.river{stroke:var(--teal);stroke-width:3.5}
+.aline.border{stroke:var(--bad);stroke-dasharray:10 5}
+.aline.ship{stroke:var(--teal);stroke-dasharray:6 4}
+.adot{position:absolute;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:var(--ink);border:2px solid var(--paper)}
+.alb{position:absolute;white-space:nowrap;font:700 var(--t-min)/1.25 var(--f-body);color:var(--ink);background:var(--paper);border:1px solid var(--edge-soft);border-radius:4px;padding:1px 6px;pointer-events:none}
+.alb.p-r{transform:translate(9px,-50%)}.alb.p-l{transform:translate(calc(-100% - 9px),-50%)}.alb.p-t{transform:translate(-50%,calc(-100% - 8px))}.alb.p-b{transform:translate(-50%,8px)}
+.alb.a{transform:translate(-50%,-50%);border-color:var(--pink)}
+.alb.w{transform:translate(-50%,-50%);background:none;border:0;color:var(--ink-soft);font-family:var(--f-hand);font-weight:400}
+.alb.ln{transform:translate(8px,-50%);}
+.alb.ln.p-l{transform:translate(calc(-100% - 8px),-50%)}
+.alb.ln{border-color:var(--teal);color:var(--ink)}
+.alb.q{border:2px solid var(--warn);color:var(--warn);font-family:var(--f-disp);font-weight:400;padding:0 8px}
+.as-steps{list-style:none;counter-reset:s;display:grid;gap:6px;margin:var(--f3) 0 0}
+.as-steps:empty{display:none}
+.as-steps li{counter-increment:s;display:grid;grid-template-columns:26px minmax(0,1fr);column-gap:8px;font-size:.9375rem;line-height:1.65;outline:none}
+.as-steps li::before{content:counter(s);grid-row:1/3;width:24px;height:24px;margin-top:2px;border-radius:50%;border:1.5px solid var(--teal);color:var(--teal);display:grid;place-items:center;font:700 .8125rem/1 var(--f-mono)}
+.as-steps li b{font-weight:900}
+.as-steps li.new{animation:view-in 260ms var(--ease-enter) both}
+.as-steps li:focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:4px}
+.as-more{margin-top:var(--f2);border-color:var(--teal);color:var(--ink)}
+.detail .assoc{margin-top:var(--f3)}
+/* ── 答え合わせの帯（たんご 半券の帯 assets/feedback.js）──
+   [motion:stub-in] REACTIVE trigger:答えた瞬間 / total:200ms / peak:200ms / easing:--ease-enter / cleanup:.on を外すと 160ms で下へ */
+.tgfb{position:fixed;left:0;right:0;bottom:0;z-index:75;transform:translateY(105%);visibility:hidden;max-height:72vh;overflow-y:auto;
+  background:var(--paper-2);border-top:2px dashed var(--edge-soft);box-shadow:0 -14px 30px -18px hsla(276,30%,2%,.8);
+  padding:16px 18px calc(16px + env(safe-area-inset-bottom,0px));transition:transform 160ms var(--ease-exit),visibility 0s linear 160ms}
+.tgfb.on{transform:none;visibility:visible;transition:transform var(--dur-2) var(--ease-enter),visibility 0s}
+.tgfb::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background-image:var(--stripes);opacity:.85}
+.tgfb.ok{background:linear-gradient(var(--good-wash),var(--good-wash)),var(--paper-2);border-top-color:var(--good)}
+.fb-in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:40px minmax(0,1fr);gap:4px 12px;align-items:center}
+.fb-mk{grid-row:1/3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:2px solid currentColor}
+.fb-mk svg{width:22px;height:22px}
+.tgfb.ok .fb-mk{color:var(--good)}.tgfb.ng .fb-mk{color:var(--bad)}
+.fb-h{font-weight:900;font-size:1.25rem;line-height:1.3;outline:none}
+.tgfb.ok .fb-h{color:var(--good)}
+.fb-a{font-size:1rem;line-height:1.55;overflow-wrap:anywhere}
+.fb-a b{font-size:1.125rem}
+.fb-x{grid-column:1/-1;font-size:var(--t-min);line-height:1.7;color:var(--ink);margin-top:6px}
+.fb-x .trap{display:inline-block;font-weight:700;color:var(--bad);margin-right:6px}
+.fb-flow{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:6px;font-size:var(--t-min)}
+.fb-flow .n{border:1.5px solid var(--edge-soft);border-radius:var(--r-chip);padding:1px 8px;font-weight:700}
+.fb-flow .a{color:var(--pink);font-weight:700}
+.fb-go{grid-column:1/-1;display:flex;gap:var(--f2);margin-top:12px}
+.fb-go .btn.main{flex:1}
+.fb-t{position:absolute;left:10px;right:0;top:-2px;height:3px;background:var(--good);transform-origin:left;transform:scaleX(0)}
+.tgfb.on.ok.auto .fb-t{animation:tgfb-t var(--fb-wait,1400ms) linear forwards}
+.tgfb.paused .fb-t{animation-play-state:paused}
+@keyframes tgfb-t{to{transform:scaleX(1)}}
+/* [motion:spark] CELEBRATION(小) trigger:正解の帯が出る / total:600ms / peak:200ms / easing:--ease-enter / cleanup:forwards で消えたまま、次の帯で作り直す */
+.spark{position:absolute;left:30px;top:30px;width:1px;height:1px;pointer-events:none}
+.spark i{position:absolute;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:var(--good);animation:spark 600ms cubic-bezier(.22,1,.36,1) forwards}
+@keyframes spark{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+
+/* ══ 結果（世界観を開放する）══ */
+.result{padding:var(--f5) 0 var(--f6)}
+.result .wrap{max-width:900px}
+.receipt{position:relative;background:var(--card);border:1.5px solid var(--edge-soft);border-radius:var(--r-big);box-shadow:var(--shadow-hand);padding:var(--f5) var(--f4) var(--f4);transform:rotate(var(--tilt-a));overflow:hidden}
+.receipt::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;background:radial-gradient(circle at 6px 8px,var(--paper) 5px,transparent 5.5px) 0 0/12px 8px repeat-x}
+.receipt h2{font-size:1rem;font-family:var(--f-hand);font-weight:400;color:var(--teal)}
+.score{display:flex;align-items:baseline;gap:12px;margin:4px 0 2px}
+.score .num{font-size:clamp(4rem,12vw,6.5rem);line-height:1}
+.score .of{font-size:1.25rem;color:var(--ink-soft)}
+.res-line{font-size:1.125rem;font-weight:700;text-wrap:balance}
+.stamp{position:absolute;right:22px;top:22px;padding:6px 12px;border:3px double var(--pink);color:var(--pink);font-weight:900;font-size:1.0625rem;border-radius:6px;transform:rotate(-8deg);opacity:0}
+/* [motion:stamp] CELEBRATION trigger:全問正解の結果 / total:700ms / peak:520ms / easing:--ease-spring / cleanup:forwards で押されたまま */
+.stamp.on{animation:stamp 700ms cubic-bezier(.34,1.56,.64,1) 2600ms forwards}
+@keyframes stamp{0%{opacity:0;transform:rotate(-8deg) scale(2.2)}75%{opacity:1;transform:rotate(-8deg) scale(.94)}100%{opacity:1;transform:rotate(-8deg) scale(1)}}
+.res-sky{position:relative;margin:var(--f4) 0 var(--f3);border-radius:var(--r-card);background:var(--sky);border:1.5px solid var(--line);overflow:hidden}
+.res-sky svg{display:block;width:100%;height:auto}
+.res-sky .ln{fill:none;stroke:var(--star-on);stroke-width:3;stroke-linecap:round;opacity:.85}
+/* [motion:constellation] CELEBRATION trigger:結果を開く / total:3.0s（星が順に灯る 0〜2.4s・線が結ぶ 0.4〜3.0s） / peak:各星 600ms / easing:--ease-spring・線は --ease-enter / cleanup:forwards で灯ったまま */
+.res-sky .ln{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw2 600ms cubic-bezier(.22,1,.36,1) forwards}
+@keyframes draw2{to{stroke-dashoffset:0}}
+.res-sky .rs{transform-box:fill-box;transform-origin:center;opacity:0;animation:ignite 600ms cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes ignite{0%{opacity:0;transform:scale(.2)}60%{opacity:1;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}
+.res-sky .rs.ok circle{fill:var(--star-on)}.res-sky .rs.ng circle{fill:none;stroke:var(--bad);stroke-width:3}
+.res-sky .rs text{fill:var(--ink);font:700 26px var(--f-body)}
+.res-sky .cap{position:absolute;left:12px;bottom:8px;font:400 var(--t-min)/1.3 var(--f-hand);color:var(--pencil)}
+.res-list{list-style:none;display:grid;gap:6px;margin:var(--f4) 0}
+.res-list li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line);font-size:var(--t-min);line-height:1.6}
+.res-list .mk{width:24px;height:24px;margin-top:1px}
+.res-list .mk.ok{color:var(--good)}.res-list .mk.ng{color:var(--bad)}
+.res-list .kd{color:var(--ink-soft);white-space:nowrap}
+.traps{display:flex;flex-wrap:wrap;gap:6px;margin:var(--f2) 0 var(--f4)}
+.traps .chip{border-color:var(--bad);color:var(--ink)}
+.res-actions{display:flex;flex-wrap:wrap;gap:var(--f2) var(--s2);align-items:center;margin-top:var(--f4)}
+
+@media (max-width:860px){
+  .top .wrap{grid-template-columns:minmax(0,1fr)}
+  .today{transform:rotate(.4deg)}
+  .detail{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .prompt{font-size:1.125rem}
+  .qcard{padding:var(--f3) var(--f3) var(--f3) calc(var(--f3) + 10px)}
+  .chain li{grid-template-columns:40px 22px minmax(0,1fr) auto}
+  .chain li .mv .btn{min-width:40px}
+  .receipt{padding:var(--f4) var(--f3) var(--f4)}
+  .stamp{position:static;display:inline-block;margin-top:var(--f2)}
+}
+/* 動きを減らす設定: すべての動きの層をここで止める */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0ms!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="sr" role="status" aria-live="polite" id="announce"></div>
+<div class="tgfb" id="fb" role="region" aria-label="答え合わせ"></div>
+<script>
+// ===== 内容データ(授業の台本・5W2H早見表の事実だけを使う) =====
+const TERMS = {
+  1: "香辛料", 2: "イタリア(商人)", 3: "オスマン帝国", 4: "ディアス", 5: "喜望峰",
+  6: "ヴァスコ＝ダ＝ガマ", 7: "カリカット", 8: "コロンブス", 9: "西インド諸島",
+  10: "トルデシリャス条約", 11: "マゼラン", 12: "アステカ王国", 13: "インカ帝国",
+  14: "大西洋", 15: "商業革命", 16: "リスボン", 17: "アントウェルペン", 18: "ポトシ",
+  19: "銀", 20: "価格革命", 21: "領主", 22: "農場領主制", 23: "一条鞭法"
+};
+
+// 因果マップのノード。col=列(0背景 1動機 2航海 3直接の結果 4銀と人口 5広がった影響)
+const NODES = [
+  { id: "spice", col: 0, y: 0, label: ["香辛料が", "ほしい"], terms: [1],
+    desc: "ヨーロッパでは肉の味付けなどにアジアの胡椒などが求められた。ヨーロッパではとれない。" },
+  { id: "middle", col: 0, y: 1, label: ["仲介が多く", "値段が高い"], terms: [2],
+    desc: "アジアからイスラーム商人、地中海でイタリア商人(ヴェネツィアなど)へと渡るたびに値段が上乗せされた。" },
+  { id: "ottoman", col: 0, y: 2, label: ["オスマン帝国が", "東の道を押さえる"], terms: [3],
+    desc: "1453年にコンスタンティノープルを征服。交易は止まっていないが、東への道を他人に握られた状態になった。" },
+  { id: "tech", col: 0, y: 4, label: ["羅針盤・", "遠洋の帆船"], terms: [],
+    desc: "遠くの海へ出られる技術。航海の「理由」ではなく、航海を「可能にした条件」。" },
+  { id: "direct", col: 1, y: 1.5, label: ["アジアと", "直接取引したい"], terms: [],
+    desc: "仲介を通さず直接買えば、上乗せ分が消えて大きくもうかる。大航海の出発点の動機。" },
+  { id: "dias", col: 2, y: 0, label: ["ディアス", "喜望峰 1488"], terms: [4, 5],
+    desc: "ポルトガルのディアスがアフリカ南端の喜望峰に到達。インドには行かず引き返した。" },
+  { id: "gama", col: 2, y: 1, label: ["ガマ", "カリカット 1498"], terms: [6, 7],
+    desc: "ヴァスコ＝ダ＝ガマがインド西海岸のカリカットに到達し、インド航路が開かれた。" },
+  { id: "columbus", col: 2, y: 2.4, label: ["コロンブス", "西インド 1492"], terms: [8, 9],
+    desc: "西へ進めばアジアに着くと考え、カリブ海の島に到達。アジアだと思い込んだので「西インド諸島」。" },
+  { id: "tordesillas", col: 2, y: 3.4, label: ["トルデシリャス", "条約 1494"], terms: [10],
+    desc: "スペインとポルトガルが大西洋に線を引き、西はスペイン・東はポルトガルの範囲とした。" },
+  { id: "magellan", col: 2, y: 4.4, label: ["マゼラン船隊", "世界周航"], terms: [11],
+    desc: "1519年出発。本人は1521年にフィリピンで死亡し、1522年に部下が1隻で帰還した。" },
+  { id: "commerce", col: 3, y: 0.5, label: ["商業革命", "中心が大西洋へ"], terms: [14, 15],
+    desc: "貿易の中心が地中海から大西洋沿岸へ移った。" },
+  { id: "cities", col: 3, y: 1.5, label: ["リスボン等が栄え", "ヴェネツィア衰退"], terms: [16, 17],
+    desc: "リスボンやアントウェルペンが栄え、地中海のイタリア都市は勢いを失った。" },
+  { id: "conquest", col: 3, y: 2.9, label: ["アステカ・", "インカ征服"], terms: [12, 13],
+    desc: "スペインがアステカ王国(1521年)とインカ帝国(1533年)を征服。" },
+  { id: "potosi", col: 4, y: 2.9, label: ["ポトシ銀山", "1545"], terms: [18],
+    desc: "征服した南アメリカ(今のボリビア)で大銀山が見つかる。" },
+  { id: "silver", col: 4, y: 3.9, label: ["大量の銀が", "ヨーロッパへ"], terms: [19],
+    desc: "銀はスペインのセビリャに入り、戦争や貿易の支払いでヨーロッパ中に広がった。" },
+  { id: "population", col: 4, y: 5.1, label: ["人口が", "増える"], terms: [],
+    desc: "16世紀のヨーロッパでは人口も増えた。物価上昇のもう一つの原因で、都市の拡大にもつながった。" },
+  { id: "grain", col: 4, y: 6.1, label: ["西欧で穀物が", "高く売れる"], terms: [],
+    desc: "西ヨーロッパの都市が大きくなり、穀物がたくさん必要になった。" },
+  { id: "pricerev", col: 5, y: 4.1, label: ["価格革命", "物価が上がる"], terms: [20],
+    desc: "16世紀の間に物価は数倍になったと言われる。原因は銀の流入と人口増加。" },
+  { id: "lords", col: 5, y: 5.1, label: ["固定地代の", "領主が苦しい"], terms: [21],
+    desc: "決まった額の地代で暮らす領主は、同じ額で買える物が減った。物を作って売る商工業者は有利に。" },
+  { id: "gutsherr", col: 5, y: 6.1, label: ["東欧の", "農場領主制"], terms: [22],
+    desc: "東ヨーロッパの領主が農民を土地に縛り、穀物を作らせて西へ輸出した。" },
+  { id: "ming", col: 5, y: 2.5, label: ["銀が明へ", "一条鞭法"], terms: [23],
+    desc: "銀はアジアの絹や陶磁器の支払いで明へ流れ、税を銀で納める一条鞭法が広がった。" },
+  { id: "world", col: 5, y: 0.6, label: ["世界の", "一体化"], terms: [],
+    desc: "航路と銀でヨーロッパ・アメリカ・アジアがつながり、遠くの出来事が暮らしを変えるようになった。" }
+];
+
+// 矢印。type: cause=原因 / part=原因の一部 / cond=条件(可能にした) / pre=前提 / adjust=対立→調整 / result=結果
+const EDGE_TYPES = {
+  cause: "原因", part: "原因の一部", cond: "条件(可能にした)", pre: "前提", adjust: "対立→調整", result: "結果"
+};
+const EDGES = [
+  { from: "spice", to: "direct", type: "cause", why: "ほしいのに遠くからしか手に入らない" },
+  { from: "middle", to: "direct", type: "cause", why: "直接買えば上乗せ分が消え、もうかる" },
+  { from: "ottoman", to: "middle", type: "part", why: "東への道を押さえられ、仲介に頼る状態が強まった(交易は止まっていない)" },
+  { from: "tech", to: "dias", type: "cond", why: "遠い海へ出る技術がなければ、理由があっても航海できない" },
+  { from: "tech", to: "columbus", type: "cond", why: "大西洋を横断できる船と航海技術があった" },
+  { from: "direct", to: "dias", type: "cause", why: "アフリカを回ってインドへ行く道を探した" },
+  { from: "dias", to: "gama", type: "pre", why: "南端を回れると分かり、インド洋への見通しが立った" },
+  { from: "direct", to: "columbus", type: "cause", why: "西回りでもアジアへ行けると考えた" },
+  { from: "columbus", to: "tordesillas", type: "adjust", why: "新しい土地の取り合いを防ぐため線を引いた" },
+  { from: "tordesillas", to: "magellan", type: "cond", why: "東回りはポルトガルの範囲。スペインは西回りでアジアをめざした" },
+  { from: "gama", to: "commerce", type: "cause", why: "インド航路の出入り口が大西洋側の港になった" },
+  { from: "columbus", to: "commerce", type: "cause", why: "アメリカ大陸との行き来も大西洋の港から始まった" },
+  { from: "commerce", to: "cities", type: "result", why: "大西洋の港町が栄え、地中海の都市は相対的に衰えた" },
+  { from: "columbus", to: "conquest", type: "pre", why: "アメリカ大陸の存在が分かり、金銀を求めて人が向かった" },
+  { from: "conquest", to: "potosi", type: "result", why: "征服した土地で鉱山の開発が進んだ" },
+  { from: "potosi", to: "silver", type: "result", why: "スペインを通して銀がヨーロッパ中に広がった" },
+  { from: "silver", to: "pricerev", type: "part", why: "お金が増えて物の量が同じなら、1つを買うのに必要なお金が増える" },
+  { from: "population", to: "pricerev", type: "part", why: "買う人が増えれば、物の値段は上がりやすい" },
+  { from: "pricerev", to: "lords", type: "result", why: "決まった額の収入では、買える物が減る" },
+  { from: "population", to: "grain", type: "cause", why: "都市が大きくなり、食べ物の需要が増えた" },
+  { from: "grain", to: "gutsherr", type: "cause", why: "穀物を輸出してもうけるため、東の領主が農民を土地に縛った" },
+  { from: "silver", to: "ming", type: "result", why: "アジアの絹や陶磁器を買う支払いに銀が使われた" },
+  { from: "ming", to: "world", type: "result", why: "銀がアメリカ・ヨーロッパ・アジアを一つの流れでつないだ" },
+  { from: "commerce", to: "world", type: "result", why: "海の道で大陸どうしが結ばれた" },
+  { from: "magellan", to: "world", type: "result", why: "海がすべてつながっていることを示した" }
+];
+
+// 地図の地点(緯度・経度)
+const PLACES = {
+  lisbon: { name: "リスボン", lat: 38.7, lon: -9.1 },
+  antwerp: { name: "アントウェルペン", lat: 51.2, lon: 4.4 },
+  venice: { name: "ヴェネツィア", lat: 45.4, lon: 12.3 },
+  constantinople: { name: "コンスタンティノープル", lat: 41.0, lon: 29.0 },
+  cape: { name: "喜望峰", lat: -34.4, lon: 18.5 },
+  calicut: { name: "カリカット", lat: 11.25, lon: 75.8 },
+  westindies: { name: "西インド諸島", lat: 23.0, lon: -75.5 },
+  potosi: { name: "ポトシ", lat: -19.6, lon: -65.8 },
+  manila: { name: "マニラ", lat: 14.6, lon: 121.0 },
+  ming: { name: "明(中国)", lat: 32.0, lon: 112.0 }
+};
+// 地図の航路(緯度, 経度)。答えたあとに描いて「どこからどこへ」を見せる
+const ROUTES = {
+  trade: [[11.25, 75.8], [13, 62], [12.6, 48], [20, 38.6], [30.2, 32.4], [34, 25], [39.5, 18.8], [45.3, 12.6]],
+  dias: [[38.7, -9.1], [28, -16], [15, -20], [2, -9], [-12, 8], [-25, 12], [-34.4, 18.5]],
+  gama: [[38.7, -9.1], [28, -16], [15, -25], [-5, -30], [-24, -24], [-37, 8], [-36, 20], [-30, 34], [-15, 42.5], [-3.2, 41], [5, 57], [11.25, 75.8]],
+  columbus: [[37.2, -6.9], [28.1, -15.4], [27, -35], [25, -55], [23, -75.5]],
+  toEurope: [[-19.6, -65.8], [-28, -50], [-5, -30], [25, -25], [37.4, -6.0]],
+  shift: [[40, 15], [38, 5], [36.5, -3], [36, -8], [40, -11], [45, -9], [48, -5], [51.2, 4.4]],
+  toMing: [[37.4, -6.0], [20, -20], [-5, -12], [-36, 18], [-10, 62], [5, 85], [10, 105], [32, 112]],
+  pacific: [[-19.6, -65.8], [-12, -77], [5, -88], [16.9, -99.9], [15, -110]],
+  pacific2: [[14, 150], [14.6, 121], [32, 112]],
+  ottoman: [[41.0, 29.0], [36, 33], [31, 31]]
+};
+
+// ===== 問題 =====
+// trap: 誤りの選択肢が引っかけている「理屈のわな」
+const TRAPS = {
+  order: "順番が逆(時間の前後)",
+  single: "原因を一つに決めつけ",
+  simple: "単純化しすぎ",
+  coincide: "同じ時期なだけ(相関)",
+  fact: "事実と違う",
+  unrelated: "関係がない",
+  condition: "条件を無視"
+};
+
+const QUESTIONS = [
+  // ---------- なぜ?(因果の説明) ----------
+  { id: "w1", mode: "why", nodes: ["spice", "middle", "ottoman", "direct"], terms: [1, 2, 3],
+    q: "ヨーロッパの人は、なぜアジアと「直接」取引したかったのか?",
+    opts: [
+      { t: "香辛料が、何人もの商人の手を通るたびに値段を上乗せされて高かったから", ok: true },
+      { t: "オスマン帝国が香辛料の交易を完全に止めてしまったから", trap: "simple" },
+      { t: "ヨーロッパでも胡椒は作れたが、アジア産のほうがおいしかったから", trap: "fact" },
+      { t: "コロンブスがアジアへの近道をすでに見つけていたから", trap: "order" }
+    ],
+    exp: "仲介(イスラーム商人→イタリア商人)が多いほど値段が上乗せされる。直接買えば上乗せ分が消え、安く仕入れて高く売れる。オスマン帝国は東への道を押さえたが、交易そのものは続いていた。" },
+  { id: "w2", mode: "why", nodes: ["tech", "dias", "columbus"], terms: [4, 8],
+    q: "「直接取引したい」という理由があっただけでは、遠い海へは出られなかった。15世紀末に航海が実現したのは、なぜか?",
+    opts: [
+      { t: "羅針盤や遠洋航海できる帆船など、航海を可能にする技術がそろったから", ok: true },
+      { t: "トルデシリャス条約で、海へ出ることが許されたから", trap: "order" },
+      { t: "価格革命でお金持ちが増え、航海の資金が集まったから", trap: "order" },
+      { t: "香辛料の値段が下がり、買いに行きやすくなったから", trap: "fact" }
+    ],
+    exp: "出来事が起きるには「原因(やりたい理由)」と「条件(できる手段)」の両方が要る。トルデシリャス条約(1494年)も価格革命(16世紀)も航海より後に起きたので、航海の原因にはなれない。" },
+  { id: "w3", mode: "why", nodes: ["dias", "gama"], terms: [4, 5, 6, 7],
+    q: "ディアスの喜望峰到達(1488年)は、なぜガマのインド到達(1498年)につながったのか?",
+    opts: [
+      { t: "アフリカの南端を回れると分かり、インド洋へ出る道の見通しが立ったから", ok: true },
+      { t: "ディアスがインドで買った香辛料を持ち帰り、道を教えたから", trap: "fact" },
+      { t: "喜望峰で銀山が見つかり、それが次の航海の資金になったから", trap: "unrelated" },
+      { t: "喜望峰を回ると、西インド諸島に着くと分かったから", trap: "fact" }
+    ],
+    exp: "ディアスは喜望峰まで行って引き返した。それでも「アフリカは回れる」という情報が、10年後のガマのカリカット到達の前提になった。前の航海の成果が、次の航海の前提になる流れ。" },
+  { id: "w4", mode: "why", nodes: ["direct", "columbus"], terms: [8, 9],
+    q: "コロンブスは、なぜカリブ海の島々を「インド」と呼んだのか?",
+    opts: [
+      { t: "西へ進めばアジアに着くと考え、地球を実際より小さく見積もっていたから", ok: true },
+      { t: "ガマが先にインドに着いていて、同じ場所だと思ったから", trap: "order" },
+      { t: "島の人たちがインドの言葉を話していたから", trap: "fact" },
+      { t: "トルデシリャス条約で「インド」と呼ぶことが決められたから", trap: "order" }
+    ],
+    exp: "当時の学者は地球が丸いことを知っていた。コロンブスの誤りは地球の大きさの見積もり。だから近くにアジアがあると信じ、到達した島を「西インド諸島」と呼んだ。ガマの到達(1498年)はコロンブス(1492年)より後なので、原因にはなれない。" },
+  { id: "w5", mode: "why", nodes: ["columbus", "tordesillas"], terms: [10],
+    q: "1494年に、なぜトルデシリャス条約が結ばれたのか?",
+    opts: [
+      { t: "コロンブスの航海のあと、スペインとポルトガルが新しい土地を取り合いそうになったから", ok: true },
+      { t: "マゼラン船隊の世界周航で、地球の形が分かったから", trap: "order" },
+      { t: "価格革命で物価が上がり、領土を増やす必要が出たから", trap: "order" },
+      { t: "オスマン帝国と世界を分け合うため", trap: "fact" }
+    ],
+    exp: "対立が起きそうになり、ルールで調整した例。境界線の東がポルトガル、西がスペイン。線の東側に南アメリカの東の出っ張りが入ったので、今もブラジルはポルトガル語を話す。" },
+  { id: "w6", mode: "why", nodes: ["tordesillas", "magellan"], terms: [10, 11],
+    q: "スペインが支援したマゼラン船隊は、なぜ東回りではなく「西回り」でアジアをめざしたのか?",
+    opts: [
+      { t: "アフリカ回りの東の道はポルトガルが押さえていたので、スペインは西から香辛料の島へ行く道を探したから", ok: true },
+      { t: "西回りのほうが近いと、太平洋の広さまで完全に分かっていたから", trap: "fact" },
+      { t: "ポトシ銀山の銀を、アジアへ運ぶためだったから", trap: "order" },
+      { t: "コロンブスがすでに西回りで世界一周していたから", trap: "fact" }
+    ],
+    exp: "トルデシリャス条約で東回りはポルトガルの範囲になった。スペインは西回りで香辛料の産地(モルッカ諸島)をめざした。太平洋の広さは知られておらず、食料が尽きて多くの乗組員が亡くなった。ポトシ銀山の発見(1545年)は航海より後。" },
+  { id: "w7", mode: "why", nodes: ["columbus", "conquest"], terms: [12, 13],
+    q: "スペインはなぜ、少ない人数でアステカ王国とインカ帝国を征服できたのか?",
+    opts: [
+      { t: "鉄砲・馬、持ち込まれた感染症、そして対立していた現地勢力の協力が重なったから", ok: true },
+      { t: "アステカとインカには国の仕組みがなく、まとまっていなかったから", trap: "fact" },
+      { t: "鉄砲を持っていたから。理由はそれだけ", trap: "single" },
+      { t: "トルデシリャス条約で、先住民が降伏を約束していたから", trap: "unrelated" }
+    ],
+    exp: "大きな出来事は、複数の原因が重なって起きることが多い。アステカもインカも大きな国だった。武器、天然痘などの感染症、現地勢力の協力が重なり、先住民の人口は激減した。" },
+  { id: "w8", mode: "why", nodes: ["gama", "columbus", "commerce", "cities"], terms: [14, 15, 16, 17],
+    q: "大航海のあと、なぜ貿易の中心が地中海から大西洋沿岸へ移ったのか?",
+    opts: [
+      { t: "インド航路もアメリカへの航路も、大西洋に面した港が出入り口になったから", ok: true },
+      { t: "ヴェネツィアがオスマン帝国に滅ぼされたから", trap: "fact" },
+      { t: "価格革命で、地中海の物価だけが上がったから", trap: "fact" },
+      { t: "地中海の港の数が減ったから", trap: "unrelated" }
+    ],
+    exp: "新しい道ができると、その入り口にある町が栄える。リスボンやアントウェルペンが栄え、ヴェネツィアなど地中海の都市は相対的に勢いを失った。これが商業革命。" },
+  { id: "w9", mode: "why", nodes: ["potosi", "silver", "pricerev", "population"], terms: [18, 19, 20],
+    q: "アメリカ大陸の銀が増えると、なぜヨーロッパの物価が上がったのか?",
+    opts: [
+      { t: "お金(銀)が増えても物の量が同じなら、1つを買うのに必要なお金が増えるから", ok: true },
+      { t: "物価が上がったので、それに合わせて銀がたくさん掘られたから", trap: "order" },
+      { t: "銀を運ぶ船の費用が、すべての商品に上乗せされたから", trap: "unrelated" },
+      { t: "銀がたくさんあると、人々が物を作らなくなったから", trap: "fact" }
+    ],
+    exp: "当時は銀がそのままお金だった。お金の量が増えて物の量が変わらなければ、お金1枚の価値が下がり、物価が上がる。ただし原因は銀だけでなく、人口増加も重なっている(原因の一部)。" },
+  { id: "w10", mode: "why", nodes: ["pricerev", "lords"], terms: [20, 21],
+    q: "物価が上がると、なぜ西ヨーロッパの領主は苦しくなったのか?",
+    opts: [
+      { t: "農民から受け取る地代の額が決まっていて、同じ額で買える物が減ったから", ok: true },
+      { t: "領主は銀を持っていなかったから", trap: "fact" },
+      { t: "物を作って売る商工業者が、領主の土地を奪ったから", trap: "fact" },
+      { t: "農民がいなくなったから", trap: "unrelated" }
+    ],
+    exp: "収入の額が決まっている人は、物価が上がると実質的に貧しくなる。反対に、物を作って売る商工業者は値上がりがもうけになり有利になった。同じ変化でも、立場によって得と損が分かれる。" },
+  { id: "w11", mode: "why", nodes: ["population", "grain", "gutsherr"], terms: [22],
+    q: "同じ時代に、東ヨーロッパではなぜ逆に領主の力が強まったのか?",
+    opts: [
+      { t: "西ヨーロッパで穀物が高く売れるようになり、東の領主が農民を土地に縛って穀物を作らせ、輸出したから", ok: true },
+      { t: "東ヨーロッパには銀が届かず、物価が下がったから", trap: "fact" },
+      { t: "オスマン帝国が東ヨーロッパの領主を支援したから", trap: "unrelated" },
+      { t: "東ヨーロッパの農民が、自分から領主に土地を渡したから", trap: "fact" }
+    ],
+    exp: "西で都市が大きくなり穀物が必要になると、東の領主にとっては穀物を作って西へ売るのがもうけになる。そのため農民の移動を禁じて土地に縛った。これが農場領主制。同じ流れでも、西と東で反対の結果になった。" },
+  { id: "w12", mode: "why", nodes: ["silver", "ming"], terms: [19, 23],
+    q: "アメリカ大陸の銀は、なぜ中国(明)まで流れたのか?",
+    opts: [
+      { t: "ヨーロッパの人がアジアの絹や陶磁器を買う支払いに使い、太平洋経由でもマニラを通って運ばれたから", ok: true },
+      { t: "価格革命で、ヨーロッパでの銀の価値が上がったから", trap: "fact" },
+      { t: "明が軍隊を送って、銀を奪ったから", trap: "fact" },
+      { t: "トルデシリャス条約で、銀は明に渡すと決められたから", trap: "unrelated" }
+    ],
+    exp: "銀はアジアの品物を買う支払いとして東へ流れた。明でも銀が広く使われるようになり、税を銀で納める一条鞭法が広がった。明が銀を求めたことが、さらに銀を引き寄せる(原因と結果が互いに強め合う)関係もあった。価格革命では、ヨーロッパの銀の価値は上がったのではなく下がった。" },
+  { id: "w13", mode: "why", nodes: ["commerce", "ming", "magellan", "world"], terms: [15, 23],
+    q: "大航海時代は、なぜ「世界の一体化」の始まりと言われるのか?",
+    opts: [
+      { t: "航路と銀でヨーロッパ・アメリカ・アジアがつながり、ある場所の出来事が地球の反対側の暮らしまで変えるようになったから", ok: true },
+      { t: "マゼラン船隊が世界を一周したから。それだけで一体化した", trap: "single" },
+      { t: "世界中の国が、一つの国にまとまったから", trap: "fact" },
+      { t: "世界中で、同じ言葉が話されるようになったから", trap: "fact" }
+    ],
+    exp: "ポトシの銀がヨーロッパの物価を変え、さらに明の税の仕組みまで変えた。遠い場所どうしが原因と結果でつながるようになったことが「一体化」の意味。" },
+
+  // ---------- 因果?相関?(判定) ----------
+  { id: "j1", mode: "judge", nodes: ["columbus", "tordesillas"], terms: [8, 10], ans: "reverse",
+    s: "トルデシリャス条約(1494年)があったから、コロンブスは西へ航海した(1492年)。",
+    exp: "条約は航海の2年後。後に起きたことは、前に起きたことの原因になれない。実際は、コロンブスの航海が条約の原因。" },
+  { id: "j2", mode: "judge", nodes: ["silver", "population", "pricerev"], terms: [18, 19, 20], ans: "partial",
+    s: "ポトシ銀山などの銀がヨーロッパに流れ込んだことが、価格革命の原因の一つになった。",
+    exp: "銀の流入は原因の一つ。16世紀には人口増加も重なっていて、どちらか一方だけで説明するのは言い過ぎ。" },
+  { id: "j3", mode: "judge", nodes: ["population", "pricerev"], terms: [20], ans: "partial",
+    s: "16世紀のヨーロッパでは、人口も物価も増えた。だから人口増加だけが物価上昇の原因だ。",
+    exp: "人口増加は原因の一つだが「だけ」は誤り。銀の流入も同時に働いている。原因が複数あるときは「だけ」に注意。" },
+  { id: "j4", mode: "judge", nodes: ["columbus", "gama"], terms: [6, 8], ans: "reverse",
+    s: "ガマがインドに着いた(1498年)ので、コロンブスは西回りの航海を選んだ(1492年)。",
+    exp: "コロンブスのほうが6年早い。年号で前後を確かめるのは、因果を考える最初の一歩。" },
+  { id: "j5", mode: "judge", nodes: ["magellan", "conquest"], terms: [11, 12], ans: "coincide",
+    s: "マゼラン船隊が航海していた頃(1519〜22年)に、アステカ王国が征服された(1521年)。だからマゼランの航海がアステカ征服の原因だ。",
+    exp: "同じ時期に起きただけで、両者をつなぐ仕組みがない。征服はコルテスによるもので、マゼランの航海とは別の流れ。時期が重なることと、原因であることは違う。" },
+  { id: "j6", mode: "judge", nodes: ["dias", "gama"], terms: [4, 5, 6], ans: "causal",
+    s: "ディアスがアフリカ南端を回れると示したことで、ガマはインドまで行く航海に見通しを持てた。",
+    exp: "前の結果が次の前提になっている。順番(1488年→1498年)も、つなぐ仕組み(アフリカを回れるという情報)もそろっている。" },
+  { id: "j7", mode: "judge", nodes: ["commerce", "cities"], terms: [14, 16, 17], ans: "causal",
+    s: "航路の出入り口が大西洋の港になったことが、リスボンやアントウェルペンの繁栄につながった。",
+    exp: "人と物の流れが港に集まる、という仕組みで結ばれている。新しい道の入り口が栄える因果。" },
+  { id: "j8", mode: "judge", nodes: ["silver", "pricerev", "ming"], terms: [20, 23], ans: "common",
+    s: "明で一条鞭法が広がったのと同じ頃、ヨーロッパでは価格革命が起きていた。だから一条鞭法が価格革命を起こした。",
+    exp: "どちらもアメリカ大陸の銀が大量に流れたことの結果。共通の原因(銀)があるので、二つは一緒に起きて見える。片方がもう片方の原因ではない。" },
+  { id: "j9", mode: "judge", nodes: ["commerce", "potosi"], terms: [15, 18], ans: "coincide",
+    s: "16世紀にヴェネツィアは勢いを失った。同じ頃ポトシ銀山が見つかった。だからヴェネツィアの衰退が銀山発見の原因だ。",
+    exp: "時期は重なるが、ヴェネツィアの衰退とポトシの発見をつなぐ仕組みがない。偶然同じ時代に起きただけ。" },
+  { id: "j10", mode: "judge", nodes: ["ottoman", "middle", "direct"], terms: [2, 3], ans: "partial",
+    s: "オスマン帝国が東の道を押さえたことは、ヨーロッパの人が直接取引を望んだ理由の一つだ。",
+    exp: "原因の一つ。香辛料の需要と、仲介が多いことによる高値も重なっている。「オスマン帝国が交易を止めたから」と一つに絞るのは単純化。" },
+  { id: "j11", mode: "judge", nodes: ["pricerev", "lords"], terms: [20, 21], ans: "causal",
+    s: "物価が上がって同じ額のお金で買える量が減ったことが、決まった地代で暮らす領主を苦しめた。",
+    exp: "物価上昇 → 実質的な収入の減少 → 生活が苦しくなる、という仕組みでつながっている。" },
+  { id: "j12", mode: "judge", nodes: ["population", "grain", "gutsherr", "lords"], terms: [21, 22], ans: "common",
+    s: "西ヨーロッパの領主が苦しくなった時期に、東ヨーロッパでは領主が強くなった。だから西の領主が弱ったことが、東の領主を強くした。",
+    exp: "どちらも16世紀の同じ大きな流れ(人口増加と物価・穀物価格の上昇)から生まれた結果。西の領主の弱体化が、直接東を強くしたわけではない。共通の原因から、立場によって反対の結果が出た例。" },
+
+  // ---------- もしも(反実仮想) ----------
+  { id: "f1", mode: "whatif", nodes: ["potosi", "silver", "population", "pricerev"], terms: [18, 20],
+    q: "もしポトシ銀山が見つからなかったら、価格革命はどうなったと考えられる?",
+    opts: [
+      { t: "物価の上がり方は小さかったかもしれない。ただ人口増加もあったので、まったく上がらなかったとは言えない", ok: true },
+      { t: "物価はまったく上がらなかった", trap: "single" },
+      { t: "大航海時代そのものが起きなかった", trap: "order" },
+      { t: "コロンブスは西へ航海しなかった", trap: "order" }
+    ],
+    exp: "原因を一つ取り除いても、ほかの原因(人口増加)は残る。また銀山の発見(1545年)は航海の後なので、航海の原因ではない。「消したら何が残るか」を考えると、原因の重さが分かる。" },
+  { id: "f2", mode: "whatif", nodes: ["ottoman", "spice", "middle", "direct"], terms: [1, 2, 3],
+    q: "もしオスマン帝国が東地中海を押さえていなかったら、ヨーロッパの人は海へ出なかっただろうか?",
+    opts: [
+      { t: "直接取引したい気持ちは少し弱かったかもしれないが、香辛料の需要と仲介の多さは残るので、海へ出る理由はなくならない", ok: true },
+      { t: "大航海は絶対に起きなかった", trap: "single" },
+      { t: "ヨーロッパの人は香辛料を必要としなくなった", trap: "unrelated" },
+      { t: "価格革命が先に起きていた", trap: "order" }
+    ],
+    exp: "オスマン帝国は原因の一部。ほかの原因(需要・仲介による高値)が残るので、結果は弱まっても消えるとは言いにくい。" },
+  { id: "f3", mode: "whatif", nodes: ["tech", "direct", "dias", "columbus"], terms: [4, 8],
+    q: "もし羅針盤や遠洋航海できる帆船がなかったら?",
+    opts: [
+      { t: "直接取引したい理由があっても遠い海へは出にくく、大航海は遅れたと考えられる", ok: true },
+      { t: "理由があるので、技術がなくても同じ時期に航海できた", trap: "condition" },
+      { t: "香辛料の値段が下がった", trap: "unrelated" },
+      { t: "トルデシリャス条約が早く結ばれた", trap: "unrelated" }
+    ],
+    exp: "技術は「原因」ではなく「条件」。条件が欠けると、原因があっても結果は起きにくい。原因(やりたい)と条件(できる)を分けて考える。" },
+  { id: "f4", mode: "whatif", nodes: ["columbus", "tordesillas"], terms: [10],
+    q: "もしトルデシリャス条約が結ばれなかったら?",
+    opts: [
+      { t: "スペインとポルトガルの争いが激しくなったかもしれない。境界がなければ、今のブラジルの言葉も違っていた可能性がある", ok: true },
+      { t: "コロンブスは航海に出なかった", trap: "order" },
+      { t: "銀が明に流れなかった", trap: "unrelated" },
+      { t: "香辛料の需要がなくなった", trap: "unrelated" }
+    ],
+    exp: "条約は対立を調整するルール。ルールがなければ、取り合いはより激しくなったと考えられる。コロンブスの航海(1492年)は条約(1494年)より前なので、条約の有無で航海は変わらない。" },
+  { id: "f5", mode: "whatif", nodes: ["silver", "ming", "world"], terms: [19, 23],
+    q: "もし明が銀を必要としていなかったら?",
+    opts: [
+      { t: "ヨーロッパの人はアジアの品物を買うのに別の支払い手段が必要になり、銀が世界をめぐる流れは弱かったと考えられる", ok: true },
+      { t: "アメリカ大陸は征服されなかった", trap: "order" },
+      { t: "価格革命は起きなかった", trap: "single" },
+      { t: "商業革命は地中海で起きた", trap: "unrelated" }
+    ],
+    exp: "銀の流れには、送る側(アメリカ・ヨーロッパ)と求める側(明)の両方が必要。求める側が消えると、つながりが弱まる。ヨーロッパの中の価格革命は、ヨーロッパに入った銀と人口増加で起きているので別に考える。" },
+  { id: "f6", mode: "whatif", nodes: ["dias", "gama", "columbus"], terms: [4, 5, 6, 7],
+    q: "もしディアスが喜望峰を回れなかったら?",
+    opts: [
+      { t: "アフリカ回りのインド航路は遅れ、ポルトガルが直接香辛料を買えるようになるのも遅れたと考えられる", ok: true },
+      { t: "コロンブスも西回りの航海をやめた", trap: "unrelated" },
+      { t: "すぐに西回りでインドへ着けた", trap: "fact" },
+      { t: "香辛料の需要がなくなった", trap: "unrelated" }
+    ],
+    exp: "ディアスの成果はガマの航海の前提。前提が欠ければ、その先の結果も遅れる。コロンブスの西回りは、スペインが支援した別の流れ。" },
+
+  // ---------- 地図(場所と流れをセットで) ----------
+  { id: "m1", mode: "map", nodes: ["middle", "ottoman"], terms: [2, 3], ans: "constantinople", route: "ottoman",
+    q: "1453年にオスマン帝国が征服し、ヨーロッパの人にとって「東への道を他人に握られた」状態を生んだ都市はどこ?",
+    exp: "コンスタンティノープル(今のイスタンブル)。ここは地中海と東を結ぶ要所だった。交易は止まらなかったが、ヨーロッパは仲介に頼る状態が強まった。" },
+  { id: "m2", mode: "map", nodes: ["middle", "direct"], terms: [1, 2], ans: "venice", route: "trade",
+    q: "インドの香辛料が、イスラーム商人の手を経て最後にイタリア商人へ渡り、地中海で売られた。その中心の都市はどこ?",
+    exp: "ヴェネツィア。仲介が重なるほど値段が上がった。この「高さ」が、直接取引したいという動機につながる。" },
+  { id: "m3", mode: "map", nodes: ["dias", "gama"], terms: [4, 5], ans: "cape", route: "dias",
+    q: "ディアスがたどり着き、「アフリカは回れる」と分かってインド航路の見通しが立った場所はどこ?",
+    exp: "喜望峰。ここを回れると分かったことが、ガマの航海の前提になった。" },
+  { id: "m4", mode: "map", nodes: ["gama", "direct"], terms: [6, 7], ans: "calicut", route: "gama",
+    q: "ガマが到達し、ヨーロッパが仲介なしで香辛料を買えるようになったインドの港はどこ?",
+    exp: "カリカット。リスボンからアフリカを回ってここまでが東回りのインド航路。仲介を飛ばせるので、大きな利益が出た。" },
+  { id: "m5", mode: "map", nodes: ["direct", "columbus"], terms: [8, 9], ans: "westindies", route: "columbus",
+    q: "コロンブスが「アジアに着いた」と思い込んだ場所はどこ?",
+    exp: "西インド諸島。西へ進めばアジアと考えていたので、ここをインドだと信じた。実際はアメリカ大陸のすぐ近く。" },
+  { id: "m6", mode: "map", nodes: ["commerce", "cities", "gama"], terms: [14, 16], ans: "lisbon", route: "gama",
+    q: "インド航路の出発点・帰着点になり、香辛料が直接入ってきて栄えたポルトガルの港はどこ?",
+    exp: "リスボン。大西洋に面した港が航路の出入り口になったことが、商業革命の中身。" },
+  { id: "m7", mode: "map", nodes: ["commerce", "cities"], terms: [15, 17], ans: "antwerp", route: "shift",
+    q: "貿易の中心が地中海から大西洋沿岸へ移る中で、16世紀前半にヨーロッパ一の商業都市になったのはどこ?",
+    exp: "アントウェルペン(今のベルギー)。地中海側のヴェネツィアが勢いを失うのと入れ替わりに栄えた。" },
+  { id: "m8", mode: "map", nodes: ["conquest", "potosi", "silver"], terms: [18, 19], ans: "potosi", route: "toEurope",
+    q: "スペインの征服のあとに見つかり、ヨーロッパの物価を変える銀の出発点になった場所はどこ?",
+    exp: "ポトシ(今のボリビア)。ここからスペインへ渡った銀が、ヨーロッパの価格革命の原因の一つになった。" },
+  { id: "m9", mode: "map", nodes: ["silver", "ming"], terms: [19, 23], ans: "manila", route: ["pacific", "pacific2"],
+    q: "アメリカ大陸の銀が、メキシコから太平洋を越えて運ばれ、明へ渡る中継地になった場所はどこ?",
+    exp: "マニラ(フィリピン)。銀は大西洋回りとアフリカ回りだけでなく、太平洋回りでも明に流れた。" },
+  { id: "m10", mode: "map", nodes: ["ming", "world"], terms: [23], ans: "ming", route: "toMing",
+    q: "世界中の銀が集まり、その結果、税を銀で納める仕組み(一条鞭法)が広がった国はどこ?",
+    exp: "明(中国)。ポトシの銀がヨーロッパの物価を変え、さらに明の税の仕組みまで変えた。世界の一体化の例。" },
+
+  // ---------- つなぐ(因果の鎖を並べ、矢印の理由を選ぶ) ----------
+  { id: "c1", mode: "chain", title: "香辛料からインド航路へ", nodes: ["spice", "middle", "direct", "dias", "gama"], terms: [1, 2, 4, 5, 6, 7],
+    items: ["ヨーロッパで香辛料(①)がほしい", "イタリア商人(②)など仲介が多く値段が高い", "アジアと直接取引したい", "ディアス(④)が喜望峰(⑤)に到達", "ガマ(⑥)がカリカット(⑦)に到達"],
+    links: [
+      { opts: ["ヨーロッパではとれず、遠くから多くの商人を通って運ばれるから", "ヨーロッパで作りすぎて余っていたから", "オスマン帝国が値下げしたから"], ok: 0 },
+      { opts: ["直接買えば上乗せ分が消え、もうけが出るから", "仲介の商人が交易を禁止したから", "値段が下がって買いやすくなったから"], ok: 0 },
+      { opts: ["アフリカを回ってインドへ行く道を探したから", "西へ進めばアジアに着くと考えたから", "銀山を探していたから"], ok: 0 },
+      { opts: ["アフリカの南端を回れると分かり、インド洋への見通しが立ったから", "ディアスが香辛料を持ち帰ったから", "条約で東回りが決まっていたから"], ok: 0 }
+    ] },
+  { id: "c2", mode: "chain", title: "西回りから価格革命へ", nodes: ["columbus", "conquest", "potosi", "silver", "pricerev"], terms: [8, 9, 12, 13, 18, 19, 20],
+    items: ["コロンブス(⑧)が西インド諸島(⑨)に到達", "スペインがアステカ(⑫)・インカ(⑬)を征服", "ポトシ(⑱)銀山が見つかる", "大量の銀(⑲)がヨーロッパへ", "物価が上がる＝価格革命(⑳)"],
+    links: [
+      { opts: ["アメリカ大陸の存在が分かり、金銀を求めて人が向かったから", "トルデシリャス条約で征服が命じられたから", "マゼランが道を開いたから"], ok: 0 },
+      { opts: ["征服した土地で鉱山の開発が進んだから", "インカの人が銀山を贈ったから", "価格革命で銀が必要になったから"], ok: 0 },
+      { opts: ["スペインを通して、銀がヨーロッパ中に広がったから", "銀は南アメリカにとどまったから", "明から銀が送り返されたから"], ok: 0 },
+      { opts: ["お金が増えて物の量が同じなら物価が上がるから(人口増加も重なった)", "銀が増えると物の量も同じだけ増えるから", "物価が上がったから銀が増えたから"], ok: 0 }
+    ] },
+  { id: "c3", mode: "chain", title: "対立と調整", nodes: ["columbus", "tordesillas", "magellan"], terms: [8, 10, 11],
+    items: ["コロンブスが新しい土地に到達(1492年)", "スペインとポルトガルが土地を取り合いそうになる", "トルデシリャス条約(⑩)で線を引く(1494年)", "東回りはポルトガル、西はスペインの範囲に", "マゼラン(⑪)の船隊が西回りでアジアへ"],
+    links: [
+      { opts: ["新しい土地がどちらのものか決まっていなかったから", "コロンブスが両国に土地を売ったから", "香辛料の値段が下がったから"], ok: 0 },
+      { opts: ["取り合いを防ぐため、ルールで調整したから", "オスマン帝国が仲裁したから", "銀山の取り分を決めるためだったから"], ok: 0 },
+      { opts: ["線の東がポルトガル、西がスペインと決まったから", "線の北と南で分けたから", "線はアジアだけを分けたから"], ok: 0 },
+      { opts: ["東の道はポルトガルが押さえていたので、スペインは西から香辛料の島を目指したから", "西回りのほうが近いと完全に分かっていたから", "ポトシの銀を運ぶためだったから"], ok: 0 }
+    ] },
+  { id: "c4", mode: "chain", title: "中心の移動", nodes: ["gama", "commerce", "cities"], terms: [14, 15, 16, 17],
+    items: ["インド航路とアメリカへの航路ができる", "大西洋(⑭)の港が航路の出入り口になる", "貿易の中心が大西洋沿岸へ＝商業革命(⑮)", "リスボン(⑯)・アントウェルペン(⑰)が栄え、ヴェネツィアは衰える"],
+    links: [
+      { opts: ["どちらの航路もイベリア半島など大西洋側から出発したから", "地中海が通れなくなったから", "オスマン帝国が港を建てたから"], ok: 0 },
+      { opts: ["人と物の流れが大西洋の港に集まったから", "地中海の港の数が減ったから", "価格革命で地中海だけ物価が上がったから"], ok: 0 },
+      { opts: ["新しい道の入り口の町が栄え、古い道の町は相対的に衰えたから", "ヴェネツィアが戦争で滅んだから", "商業革命は町と関係がないから"], ok: 0 }
+    ] },
+  { id: "c5", mode: "chain", title: "東と西で反対の結果", nodes: ["population", "grain", "gutsherr", "pricerev", "lords"], terms: [20, 21, 22],
+    items: ["16世紀、西ヨーロッパの人口と都市が増える", "穀物がたくさん必要になり、高く売れる", "東ヨーロッパの領主が、穀物を作って輸出したい", "農民を土地に縛る＝農場領主制(㉒)が強まる"],
+    links: [
+      { opts: ["食べる人が増えれば、食べ物の需要が増えるから", "人口が増えると畑も自動で増えるから", "銀が穀物に変わったから"], ok: 0 },
+      { opts: ["西で高く売れる穀物を作れば、東の領主がもうかるから", "東では穀物が余って捨てられたから", "オスマン帝国が穀物を買い占めたから"], ok: 0 },
+      { opts: ["働き手を逃がさず、たくさん作らせるため移動を禁じたから", "農民が自分から土地を渡したから", "領主(㉑)が苦しくなって土地を手放したから"], ok: 0 }
+    ] },
+  { id: "c6", mode: "chain", title: "銀が世界をつなぐ", nodes: ["silver", "ming", "world"], terms: [19, 23],
+    items: ["アメリカ大陸の銀(⑲)がヨーロッパへ", "アジアの絹や陶磁器を買う支払いに使う", "銀が明へ流れ込む", "明で税を銀で納める＝一条鞭法(㉓)", "遠い地域どうしが銀でつながる＝世界の一体化"],
+    links: [
+      { opts: ["ヨーロッパの人はアジアの品物が欲しく、その代金が必要だったから", "銀は重すぎてヨーロッパに置けなかったから", "明が銀を貸していたから"], ok: 0 },
+      { opts: ["支払いとして銀がアジアへ渡ったから", "銀は使うと消えるから", "マゼランが明に銀を届けたから"], ok: 0 },
+      { opts: ["銀が広く出回り、税も銀で集められるようになったから", "明が銀を禁止したから", "価格革命が明で起きたから"], ok: 0 },
+      { opts: ["アメリカの銀山の出来事が、ヨーロッパの物価と明の税まで変えたから", "全ての国が一つにまとまったから", "全員が同じ通貨を使うと決めたから"], ok: 0 }
+    ] }
+];
+
+const MODES = {
+  chain: { label: "つなぐ", principle: 1 },
+  why: { label: "なぜ?", principle: 1 },
+  judge: { label: "因果?相関?", principle: 2 },
+  whatif: { label: "もしも", principle: 2 },
+  map: { label: "地図", principle: 4 }
+};
+
+const JUDGE_CHOICES = [
+  { v: "causal", t: "因果", d: "順番も、つなぐ仕組みもある" },
+  { v: "partial", t: "原因の一部", d: "原因だが、ほかにも原因がある" },
+  { v: "coincide", t: "同じ時期なだけ", d: "時期が重なるが、つなぐ仕組みがない" },
+  { v: "common", t: "共通の原因", d: "両方とも、別の同じ原因から起きた" },
+  { v: "reverse", t: "順番が逆", d: "後に起きたことを原因にしている" }
+];
+
+const MAP_SRC = "data:image/png;base64,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";
+</script>
+<script>
+{
+"use strict";
+// ═══════════ 小道具 ═══════════
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v;
+    else if (k === "text") n.textContent = v;
+    else if (k === "html") n.innerHTML = v; // 自前の固定SVGだけに使う
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(Infinity)) if (c != null && c !== false) n.append(c.nodeType ? c : document.createTextNode(c));
+  return n;
+};
+const NS = "http://www.w3.org/2000/svg";
+const sv = (tag, attrs = {}, ...kids) => {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) if (v != null) n.setAttribute(k, v);
+  for (const c of kids.flat()) if (c != null) n.append(c.nodeType ? c : document.createTextNode(c));
+  return n;
+};
+const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const circled = (n) => String.fromCodePoint(n <= 20 ? 0x245F + n : 0x3250 + (n - 20));
+const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const announce = (t) => { const a = $("#announce"); a.textContent = ""; setTimeout(() => { a.textContent = t; }, 40); };
+const I = {
+  ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 13l4 4L19 7"/></svg>',
+  ng: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg>',
+  grip: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>',
+  go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 3v5M12 16v5M3 12h5M16 12h5M6.5 6.5l2.6 2.6M14.9 14.9l2.6 2.6M17.5 6.5l-2.6 2.6M9.1 14.9l-2.6 2.6"/></svg>'
+};
+const crops = () => ["tl", "tr", "bl", "br"].map(c => el("span", { class: "crop " + c, "aria-hidden": "true", html: '<svg viewBox="0 0 16 16"><path d="M0 6h6V0"/></svg>' }));
+
+// ═══════════ 用語の手がかり（台本・早見表の事実だけ）＝暗記の札 ═══════════
+// k=種類（ダミーは同じ種類から、星座図で近い語を優先して選ぶ＝たんごの「近すぎず遠すぎず」の考え方）
+const TI = {
+  1: { k: "thing", c: "肉の味付けなどに求められた、アジアの胡椒など。ヨーロッパではとれない。", a: ["スパイス"], r: "こうしんりょう" },
+  2: { k: "group", c: "香辛料をイスラーム商人から受け取り、地中海で売った、ヴェネツィアなどの商人。", a: ["イタリア", "イタリア商人"], r: "いたりあしょうにん" },
+  3: { k: "group", c: "1453年にコンスタンティノープルを征服し、東への道を押さえた国。", a: ["オスマン", "オスマントルコ"], r: "おすまんていこく" },
+  4: { k: "person", c: "1488年にアフリカ南端へ到達し、インドには行かずに引き返したポルトガルの航海者。", a: [], r: "" },
+  5: { k: "place", c: "1488年にディアスが到達した、アフリカ大陸の南の端。", a: [], r: "きぼうほう" },
+  6: { k: "person", c: "1498年にインド西海岸へ到達し、インド航路を開いた航海者。", a: ["ガマ", "バスコダガマ", "ヴァスコダガマ"], r: "" },
+  7: { k: "place", c: "1498年にガマが到達した、インド西海岸の港町。", a: [], r: "" },
+  8: { k: "person", c: "西へ進めばアジアに着くと考え、1492年にカリブ海の島に到達した航海者。", a: [], r: "" },
+  9: { k: "place", c: "コロンブスがアジアだと思い込んだことから名づけられた、カリブ海の島々。", a: [], r: "にしいんどしょとう" },
+  10: { k: "concept", c: "1494年、スペインとポルトガルが大西洋に線を引き、西はスペイン・東はポルトガルの範囲とした取り決め。", a: ["トルデシリャス"], r: "とるでしりゃすじょうやく" },
+  11: { k: "person", c: "1519年に出発した船隊を率いた。本人は1521年にフィリピンで死亡し、1522年に部下が1隻で帰還して世界周航を果たした。", a: [], r: "" },
+  12: { k: "group", c: "1521年にスペインが征服した、アメリカ大陸（今のメキシコ）の王国。", a: ["アステカ"], r: "あすてかおうこく" },
+  13: { k: "group", c: "1533年にスペインが征服した、南アメリカのアンデスの帝国。", a: ["インカ"], r: "いんかていこく" },
+  14: { k: "place", c: "商業革命で、貿易の中心が地中海からこの海の沿岸へ移った。", a: [], r: "たいせいよう" },
+  15: { k: "concept", c: "貿易の中心が地中海から大西洋沿岸へ移ったこと。", a: [], r: "しょうぎょうかくめい" },
+  16: { k: "place", c: "インド航路の出入り口となって栄えた、ポルトガルの港町。", a: [], r: "" },
+  17: { k: "place", c: "大西洋側で栄えた、ヨーロッパ北西部（北海の近く）の商業都市。", a: ["アントワープ"], r: "" },
+  18: { k: "place", c: "1545年に見つかった、南アメリカ（今のボリビア）の大銀山。", a: ["ポトシ銀山"], r: "" },
+  19: { k: "thing", c: "アメリカ大陸からスペインのセビリャに入り、ヨーロッパ中へ、さらにアジアの明へと流れた金属。", a: [], r: "ぎん" },
+  20: { k: "concept", c: "16世紀のヨーロッパで物価が数倍になったこと。原因は銀の流入と人口増加。", a: [], r: "かかくかくめい" },
+  21: { k: "group", c: "決まった額の地代で暮らしていたため、物価が上がると同じ額で買える物が減って苦しくなった人々。", a: [], r: "りょうしゅ" },
+  22: { k: "concept", c: "東ヨーロッパの領主が農民を土地に縛り、穀物を作らせて西へ輸出したしくみ。", a: [], r: "のうじょうりょうしゅせい" },
+  23: { k: "concept", c: "明で広がった、税を銀で納めるしくみ。", a: [], r: "いちじょうべんぽう" }
+};
+const KIND_JA = { thing: "もの", group: "国・人々", person: "人物", place: "場所", concept: "しくみ・出来事" };
+const NAME_FIX = {
+  dias: "ディアスが喜望峰へ(1488)", gama: "ガマがカリカットへ(1498)", columbus: "コロンブスが西インドへ(1492)",
+  tordesillas: "トルデシリャス条約(1494)", magellan: "マゼラン船隊の世界周航", commerce: "商業革命(中心が大西洋へ)",
+  cities: "リスボン等が栄え、ヴェネツィア衰退", potosi: "ポトシ銀山(1545)", pricerev: "価格革命(物価が上がる)",
+  ming: "銀が明へ・一条鞭法", tech: "羅針盤・遠洋の帆船", conquest: "アステカ・インカ征服"
+};
+const PLACE_HINT = {
+  lisbon: "イベリア半島の西の海岸", antwerp: "北海に近いヨーロッパ北西部", venice: "イタリア半島の付け根の海の奥",
+  constantinople: "地中海と黒海のあいだ", cape: "アフリカ大陸の南の端", calicut: "インド半島の南西の海岸",
+  westindies: "カリブ海の島々", potosi: "南アメリカの内陸の山地", manila: "東南アジアの島", ming: "東アジアの大陸"
+};
+const COLS = ["背景", "動機", "航海", "直接の結果", "銀と人口", "広がった影響"];
+
+const nodeById = Object.fromEntries(NODES.map(n => [n.id, n]));
+const NAME = (id) => NAME_FIX[id] || nodeById[id].label.join("");
+const qById = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+const termNode = {};
+for (const n of NODES) for (const t of n.terms) if (!termNode[t]) termNode[t] = n.id;
+const termIds = Object.keys(TERMS).map(Number);
+// 星座図の近さ（矢印を向きなしでたどった段数）
+const adj = Object.fromEntries(NODES.map(n => [n.id, new Set()]));
+for (const e of EDGES) { adj[e.from].add(e.to); adj[e.to].add(e.from); }
+const distMemo = {};
+function dist(a, b) {
+  if (a === b) return 0;
+  const key = a + ">" + b; if (key in distMemo) return distMemo[key];
+  const seen = new Set([a]); let fr = [a], d = 0;
+  while (fr.length) { d++; const nx = []; for (const x of fr) for (const y of adj[x]) { if (y === b) return (distMemo[key] = d); if (!seen.has(y)) { seen.add(y); nx.push(y); } } fr = nx; }
+  return (distMemo[key] = 9);
+}
+
+// ═══════════ 記録（この端末だけ・失敗しても動く）＝間をあけて復習 ═══════════
+const KEY = "daikokai-terms-v2";
+const DAY = 864e5, WAIT = [0, 0, DAY, 3 * DAY, 7 * DAY]; // 箱1=すぐ・2=翌日・3=3日後・4=1週間後
+let store = { r: {}, traps: {}, set: { auto: true, sound: false } };
+try {
+  const raw = localStorage.getItem(KEY);
+  if (raw) { const s = JSON.parse(raw); store = { r: s.r || {}, traps: s.traps || {}, set: Object.assign(store.set, s.set || {}) }; }
+  else { // 前の版（因果マップ v1）の記録を引きつぐ
+    const old = JSON.parse(localStorage.getItem("daikokai-causal-v1") || "null");
+    if (old && old.q) for (const [id, r] of Object.entries(old.q)) if (qById[id]) { const box = Math.min(4, r.box || 1); store.r[id] = { box, seen: r.seen || 1, ok: r.ok || 0, last: r.last || Date.now(), due: (r.last || Date.now()) + WAIT[box] }; }
+    if (old && old.traps) store.traps = old.traps;
+  }
+} catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const rec = (id) => store.r[id] || null;
+function record(id, ok, trap, soft) {
+  const r = store.r[id] || { box: 1, seen: 0, ok: 0 };
+  if (ok) { r.ok++; if (!soft) r.box = r.seen === 0 ? 2 : Math.min(4, r.box + 1); }
+  else { r.box = 1; if (trap) store.traps[trap] = (store.traps[trap] || 0) + 1; }
+  r.seen++; r.last = Date.now(); r.due = r.last + WAIT[r.box];
+  store.r[id] = r; save();
+}
+
+// ═══════════ 問題の種類と集め方 ═══════════
+// id: t4=用語④ / e3=矢印3番 / w1,f1,j1,m1,c1=台本の問題
+const KINDS = {
+  term: { t: "用語を思い出す", d: "説明から用語を選ぶ。覚えてきたら書いて答えます", n: 10 },
+  edge: { t: "矢印をたどる", d: "出来事の「原因」と「その結果」を選びます", n: 10 },
+  why: { t: "なぜ？・もしも", d: "理由を説明できるかを確かめます", n: 8 },
+  judge: { t: "因果？相関？", d: "「同じ時期なだけ」を見やぶります", n: 8 },
+  map: { t: "地図で場所を", d: "どこで起きて、どこへ広がったか", n: 8 },
+  chain: { t: "鎖をつなぐ", d: "原因から結果の順に並べ、矢印の理由を選びます", n: 3 }
+};
+const kindOf = (id) => id[0] === "t" ? "term" : id[0] === "e" ? "edge" : ({ why: "why", whatif: "why", judge: "judge", map: "map", chain: "chain" })[qById[id].mode];
+const ALL = [...termIds.map(t => "t" + t), ...EDGES.map((e, i) => "e" + i), ...QUESTIONS.map(q => q.id)];
+const byKind = (k) => ALL.filter(id => kindOf(id) === k);
+function nodesOf(id) {
+  if (id[0] === "t") return [termNode[+id.slice(1)]];
+  if (id[0] === "e") { const e = EDGES[+id.slice(1)]; return [e.from, e.to]; }
+  return qById[id].nodes;
+}
+function prio(id) { // 小さいほど先に出す：時期が来た復習 → まだ → 先の予定
+  const r = rec(id), now = Date.now();
+  if (!r) return 1 + Math.random() * .6;
+  if (r.due <= now) return r.box * .15 + Math.random() * .1;
+  return 2 + (r.due - now) / DAY * .1;
+}
+const pickBy = (ids, n) => ids.map(id => [prio(id), id]).sort((a, b) => a[0] - b[0]).slice(0, n).map(x => x[1]);
+const dueCount = () => ALL.filter(id => { const r = rec(id); return r && r.due <= Date.now(); }).length;
+const unseenCount = () => ALL.filter(id => !rec(id)).length;
+function buildDaily() {
+  const quota = { term: 5, edge: 2, why: 2, judge: 1, map: 1, chain: 1 };
+  let ids = [];
+  for (const [k, n] of Object.entries(quota)) ids.push(...pickBy(byKind(k), n));
+  const chain = ids.filter(id => kindOf(id) === "chain");
+  ids = shuffle(ids.filter(id => kindOf(id) !== "chain"));
+  ids.splice(Math.min(6, ids.length), 0, ...chain); // 長い「鎖」は真ん中あたりに
+  return ids;
+}
+const masteryOfIds = (ids) => {
+  const rs = ids.map(rec);
+  if (!rs.some(Boolean)) return "none";
+  const good = rs.filter(r => r && r.box >= 2).length;
+  return good / ids.length >= .8 ? "done" : "mid";
+};
+const termLevel = (t) => { const r = rec("t" + t); return !r ? "none" : r.box >= 3 ? "done" : "mid"; };
+const itemsOfNode = (nid) => ALL.filter(id => nodesOf(id).includes(nid));
+const nodeLevel = (nid) => masteryOfIds(itemsOfNode(nid));
+const M_LABEL = { none: "まだ", mid: "練習中", done: "覚えた" };
+
+// ═══════════ 音と振動（設定でオン・初めはオフ） ═══════════
+let actx = null;
+function feel(ok) {
+  if (!store.set.sound) return;
+  try { navigator.vibrate && navigator.vibrate(ok ? 12 : [18, 40, 18]); } catch (e) {}
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = ok ? [[660, 0], [990, .08]] : [[220, 0]];
+    for (const [f, t] of notes) {
+      const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + t;
+      o.type = ok ? "sine" : "triangle"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(.08, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + (ok ? .16 : .22));
+      o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + .25);
+    }
+  } catch (e) {}
+}
+
+// ═══════════ 連想の糸（地図＋自問自答）═══════════
+// v=[西経度,東経度,南緯度,北緯度] で地図を切り抜く。m=印（c=都市 a=地域の輪 w=海の名前・t=用語番号＝その用語を当てる問題では伏せる）
+// s=[問い, 答え, 印]（nx=次の出来事を言っている→「その結果は？」の問題では隠す／pv=原因を言っている→「原因は？」で隠す）
+// 台本にない事実は教科書の範囲の補足（連想の手がかり用）
+const ASSOC = {
+  spice: { v: [-15, 135, -12, 58], m: [{ n: "ヨーロッパ", la: 50, lo: 10, a: 8 }, { n: "インド（胡椒）", la: 20, lo: 78, a: 7 }, { n: "香料諸島", la: -3, lo: 127, a: 5, p: "t" }],
+    s: [["香辛料って、どこでとれる？", "胡椒はインド、丁子などは東南アジアの香料諸島（モルッカ諸島）。ヨーロッパではとれない。"],
+        ["何に使った？", "肉の味付けなど。ほしい人はヨーロッパに多いのに、産地は地球の反対側。"],
+        ["遠いと何が起きる？", "運ぶあいだに商人の手をいくつも通る → 値段が上がっていく。", "nx"]] },
+  middle: { v: [-5, 82, 2, 50], m: [{ n: "カリカット", la: 11.25, lo: 75.8, c: 1 }, { n: "アレクサンドリア", la: 31.2, lo: 29.9, c: 1, p: "b" }, { n: "ヴェネツィア", la: 45.4, lo: 12.3, c: 1 }, { n: "ジェノヴァ", la: 44.4, lo: 8.9, c: 1, p: "l" }],
+    r: ["trade"],
+    s: [["だれの手を通った？", "インド → イスラーム商人（インド洋・紅海）→ エジプトのアレクサンドリアなど → 地中海でイタリア商人。"],
+        ["イタリアって、どんな所？", "一つの国ではなく、ヴェネツィアやジェノヴァなどの都市が、それぞれ地中海の交易で栄えていた。"],
+        ["手を通るたびに？", "値段が上乗せされる → 直接買えば、その分もうかる。", "nx"]] },
+  ottoman: { v: [8, 52, 28, 52], m: [{ n: "コンスタンティノープル", la: 41, lo: 29, c: 1, p: "t" }, { n: "オスマン帝国", la: 38.6, lo: 34, a: 4.5, t: 3 }, { n: "黒海", la: 43.4, lo: 34.5, w: 1 }, { n: "地中海", la: 35, lo: 18, w: 1 }, { n: "ヴェネツィア", la: 45.4, lo: 12.3, c: 1 }],
+    s: [["1453年、何が起きた？", "オスマン帝国が、ビザンツ帝国の都コンスタンティノープル（今のイスタンブル）を征服した。"],
+        ["どんな国？", "スルタンが治めるイスラームの大帝国。地中海の東側と、アジアへの出入り口を押さえた。"],
+        ["交易は止まった？", "止まっていない。でも東への道を他人に握られ、仲介に頼る状態が強まった。", "nx"]] },
+  tech: { v: [-32, 22, 22, 56], m: [{ n: "ポルトガル", la: 39.6, lo: -8, a: 2.6 }, { n: "大西洋", la: 34, lo: -22, w: 1 }, { n: "地中海", la: 37.5, lo: 12, w: 1 }],
+    s: [["羅針盤はどこから？", "中国で生まれ、イスラーム世界を通ってヨーロッパへ伝わった。"],
+        ["遠洋の帆船って？", "地中海よりずっと荒い大西洋を越えられる船（カラベル船など）。"],
+        ["理由と同じ？", "ちがう。技術は航海を「できるようにした条件」。「行きたい理由」とは別にそろう必要がある。"]] },
+  direct: { v: [-85, 85, -40, 58], m: [{ n: "ヨーロッパ", la: 48, lo: 8, a: 7 }, { n: "インド", la: 20, lo: 78, a: 6 }, { n: "ポルトガル", la: 38.7, lo: -9.1, c: 1, p: "l" }],
+    r: ["gama", "columbus"],
+    s: [["「直接」ってどういうこと？", "イスラーム商人もイタリア商人も通さず、自分の船でアジアへ行って買うこと。"],
+        ["どの国が？", "大西洋に面したポルトガルとスペイン。地中海の道はイタリア商人とオスマン帝国が押さえていたから、別の道が要った。"],
+        ["どの道で？", "東回り＝アフリカを回る（ポルトガル）。西回り＝大西洋を西へ（スペイン）。", "nx"]] },
+  dias: { v: [-30, 45, -40, 45], m: [{ n: "リスボン", la: 38.7, lo: -9.1, c: 1, p: "l" }, { n: "喜望峰", la: -34.4, lo: 18.5, c: 1, t: 5 }, { n: "アフリカ", la: 5, lo: 20, w: 1 }],
+    r: ["dias"],
+    s: [["どこの国の人？", "ポルトガル。ユーラシアのいちばん西、大西洋に面した王国。"],
+        ["どこまで行った？", "アフリカの南の端まで行って引き返した（1488年）。インドには着いていない。"],
+        ["「喜望峰」の名前の意味は？", "希望の岬＝「この先インドへ行ける」という希望が見えた、という名前。", "nx"]] },
+  gama: { v: [-30, 85, -40, 45], m: [{ n: "リスボン", la: 38.7, lo: -9.1, c: 1, p: "l", t: 16 }, { n: "喜望峰", la: -34.4, lo: 18.5, c: 1, t: 5 }, { n: "カリカット", la: 11.25, lo: 75.8, c: 1, t: 7 }],
+    r: ["gama"],
+    s: [["どの道を通った？", "東回り。リスボンを出てアフリカの南の端を回り、インド洋を渡った。", "pv"],
+        ["着いたのは？", "インド西海岸のカリカット（1498年）。胡椒の産地に近い港町。"],
+        ["これで何が変わる？", "イタリア商人を通さずに香辛料を運べる → 大西洋側の港が出入り口になる。", "nx"]] },
+  columbus: { v: [-90, 15, 5, 50], m: [{ n: "スペインの港パロス", la: 37.2, lo: -6.9, c: 1, p: "b" }, { n: "西インド諸島", la: 21, lo: -74, a: 4, t: 9 }, { n: "ジェノヴァ（生まれた町）", la: 44.4, lo: 8.9, c: 1, p: "t" }],
+    r: ["columbus"],
+    s: [["どこの国の支援？", "スペイン（イサベル女王）。コロンブス本人はジェノヴァ生まれのイタリア人。"],
+        ["なぜ西へ？", "地球は丸いから、西へ進めばアジアに着くと考えた。"],
+        ["なぜ「西インド」？", "着いたカリブ海の島をアジア（インド）だと思い込んだから。本当はアメリカ大陸の手前。"]] },
+  tordesillas: { v: [-85, 25, -40, 50], m: [{ n: "スペイン", la: 40.5, lo: -3.5, a: 3 }, { n: "ポルトガル", la: 38.7, lo: -9.1, c: 1, p: "l" }, { n: "ブラジル（線の東）", la: -10, lo: -42, a: 6 }],
+    l: [{ pts: [[49, -46.5], [-40, -46.5]], n: "分けた線", cls: "border" }],
+    s: [["だれとだれの取り決め？", "スペインとポルトガル（どちらも王国）。前の年に教皇が引いた線を、二国の話し合いで西へずらした。"],
+        ["線のこっちとあっちは？", "線の西はスペイン、東はポルトガルの範囲。"],
+        ["南アメリカで言うと？", "ブラジルの東側が線の東に入った → だからブラジルは今もポルトガル語の国。"]] },
+  magellan: { v: [-110, 150, -45, 62], m: [{ n: "セビリャ", la: 37.4, lo: -6, c: 1, p: "t" }, { n: "南の端の海峡へ", la: -43, lo: -67, c: 1 }, { n: "フィリピン", la: 11, lo: 124, c: 1, p: "l" }],
+    l: [{ pts: [[37.4, -6], [28, -16], [5, -25], [-20, -38], [-38, -57], [-44, -68], [-44, -78], [-25, -100], [-10, -110]] }, { pts: [[13, 150], [11, 124]] }, { pts: [[11, 124], [-5, 105], [-25, 70], [-36, 20], [-5, -12], [28, -16], [37.4, -6]], cls: "back" }],
+    s: [["どの国のため？", "スペイン（本人はポルトガル人）。"],
+        ["なぜ西回り？", "東回りはポルトガルの範囲と決まっていた（トルデシリャス条約）。スペインは西からアジアへ。", "pv"],
+        ["どうなった？", "南アメリカの南の端を回って太平洋を横断。本人はフィリピンで死亡、部下が1522年に1隻で帰還 → 海はぜんぶつながっていると分かった。"]] },
+  commerce: { v: [-80, 32, -5, 60], m: [{ n: "地中海", la: 37, lo: 17, w: 1 }, { n: "大西洋", la: 30, lo: -42, w: 1, t: 14 }, { n: "リスボン", la: 38.7, lo: -9.1, c: 1, p: "l", t: 16 }, { n: "アントウェルペン", la: 51.2, lo: 4.4, c: 1, p: "t", t: 17 }],
+    r: ["shift"],
+    s: [["中心はどこからどこへ？", "地中海（ヴェネツィアなど）から、大西洋沿岸（リスボン・アントウェルペンなど）へ。"],
+        ["なぜ移った？", "インド航路もアメリカへの道も、大西洋側の港が出入り口になったから。", "pv"],
+        ["名前は？", "商業（貿易）の大きな変化なので「商業革命」。"]] },
+  cities: { v: [-15, 30, 34, 58], m: [{ n: "リスボン", la: 38.7, lo: -9.1, c: 1, p: "r", t: 16 }, { n: "アントウェルペン", la: 51.2, lo: 4.4, c: 1, p: "t", t: 17 }, { n: "ヴェネツィア", la: 45.4, lo: 12.3, c: 1, p: "r" }],
+    r: ["shift"],
+    s: [["リスボンは？", "ポルトガルの都。アジアの香辛料が着く港になった。"],
+        ["アントウェルペンは？", "今のベルギーにある港町。香辛料や銀が集まる取引の中心になった（当時はスペイン王家と同じハプスブルク家の領地）。"],
+        ["ヴェネツィアは？", "地中海の道の主役だったが、道が大西洋に移って勢いを失った。"]] },
+  conquest: { v: [-110, -35, -25, 32], m: [{ n: "アステカ（今のメキシコ）", la: 19.4, lo: -99.1, a: 3.5, t: 12 }, { n: "インカ（アンデス）", la: -13.5, lo: -72, a: 4, t: 13 }, { n: "西インド諸島", la: 21, lo: -74, a: 3 }],
+    s: [["だれが征服した？", "スペインから来た征服者。アステカはコルテス、インカはピサロ。"],
+        ["どこにあった国？", "アステカは今のメキシコ（都テノチティトラン）、インカは南アメリカのアンデス山脈（都クスコ）。"],
+        ["少ない人数でなぜ？", "鉄砲と馬、そしてヨーロッパから持ちこまれた病気（天然痘）で多くの人が亡くなった。"],
+        ["何を求めて？", "金と銀。征服した土地で鉱山を探した。", "nx"]] },
+  potosi: { v: [-95, -30, -40, 15], m: [{ n: "ポトシ", la: -19.6, lo: -65.8, c: 1, t: 18 }, { n: "クスコ（インカの都）", la: -13.5, lo: -72, c: 1, p: "l" }, { n: "太平洋", la: -25, lo: -85, w: 1 }, { n: "大西洋", la: -20, lo: -38, w: 1 }],
+    s: [["どこにある？", "南アメリカのアンデス山中、今のボリビア。インカ帝国があった地域。", "pv"],
+        ["だれが掘った？", "先住民（インディオ）が強制的に働かされた。"],
+        ["銀はどこへ？", "スペインへ船で運ばれた。", "nx"]] },
+  silver: { v: [-80, 20, -30, 52], m: [{ n: "ポトシ", la: -19.6, lo: -65.8, c: 1, t: 18 }, { n: "セビリャ", la: 37.4, lo: -6, c: 1, p: "t" }, { n: "ヨーロッパ", la: 47, lo: 8, a: 6 }],
+    r: ["toEurope"],
+    s: [["どこに着いた？", "スペインのセビリャ。"],
+        ["スペインに残った？", "残らない。戦争や輸入品の支払いで、ヨーロッパ中へ流れ出た。"],
+        ["お金が増えると？", "物の量が同じなら、物の値段が上がる。さらに銀はアジアの支払いにも使われた。", "nx"]] },
+  population: { v: [-15, 45, 34, 62], m: [{ n: "西ヨーロッパ", la: 48, lo: 3, a: 5 }, { n: "ロンドン", la: 51.5, lo: -0.1, c: 1, p: "l" }, { n: "パリ", la: 48.9, lo: 2.35, c: 1, p: "b" }, { n: "アントウェルペン", la: 51.2, lo: 4.4, c: 1, p: "r" }],
+    s: [["16世紀のヨーロッパは？", "人口が増えた。都市も大きくなった。"],
+        ["人が増えると？", "物を買う人が増える。食べ物（穀物）もたくさん要る。"],
+        ["どこにつながる？", "①物価が上がる ②西ヨーロッパで穀物が高く売れる。", "nx"]] },
+  grain: { v: [-12, 45, 40, 62], m: [{ n: "アムステルダム", la: 52.4, lo: 4.9, c: 1, p: "l" }, { n: "ダンツィヒ", la: 54.35, lo: 18.65, c: 1, p: "b" }, { n: "バルト海", la: 57.6, lo: 19.5, w: 1 }, { n: "東ヨーロッパ", la: 51, lo: 27, a: 6 }],
+    l: [{ pts: [[54.35, 18.65], [55.2, 15], [55.7, 12.7], [57, 11.4], [57.9, 9.5], [56, 6.5], [52.4, 4.9]], cls: "ship" }],
+    s: [["西のどこで？", "人口が増えて大きくなった都市（ネーデルラントなど）。", "pv"],
+        ["どこから運んだ？", "東ヨーロッパの穀物を、バルト海の港（ダンツィヒなど）から船で西へ。"],
+        ["東の領主にとっては？", "作れば作るほどもうかる商売になった。", "nx"]] },
+  lords: { v: [-15, 45, 34, 62], m: [{ n: "西ヨーロッパの領主", la: 47.5, lo: 3, a: 6, t: 21 }, { n: "セビリャ（銀の入口）", la: 37.4, lo: -6, c: 1, p: "r" }],
+    s: [["領主ってだれ？", "土地を持ち、農民から地代を受け取って暮らす人（貴族など）。"],
+        ["固定地代って？", "毎年決まった額で受け取る地代。物価が上がっても額は同じ。"],
+        ["物価が上がると？", "同じ額で買える物が減る → 領主は苦しい。物を作って売る商工業者は有利に。", "pv"]] },
+  gutsherr: { v: [-8, 45, 42, 62], m: [{ n: "ポーランド", la: 52.3, lo: 20, a: 3.4 }, { n: "ロシア（モスクワ）", la: 55.75, lo: 37.6, a: 3.6 }, { n: "ベーメン", la: 50, lo: 14.6, c: 1, p: "l" }, { n: "ハンガリー", la: 47.2, lo: 19.5, a: 2.4 }, { n: "ダンツィヒ", la: 54.35, lo: 18.65, c: 1, p: "t" }, { n: "西ヨーロッパ", la: 48.5, lo: 1.5, a: 4.2 }],
+    l: [{ pts: [[53.9, 8.9], [53.55, 10], [53.1, 11.3], [52.2, 11.7], [51.8, 12.2], [51.05, 13.7], [50.6, 14.2], [50.4, 15.2]], n: "エルベ川", cls: "river", i: 0, p: "l" }],
+    s: [["「東ヨーロッパ」って？", "エルベ川より東。ポーランド、プロイセン、ベーメン、ハンガリー、その先にロシア。"],
+        ["どんな国だった？", "ポーランドは王国だが、王は貴族の選挙で選ばれ（1573年から）、貴族がとても強かった。ロシアは皇帝（ツァーリ）が治める国。どちらも都市や商人の力は弱く、領主（貴族）が強い。"],
+        ["領主が強いと？", "農民を土地に縛り、自分の農場でただ働き（賦役）させられた。"],
+        ["なぜそこまで？", "西ヨーロッパで穀物が高く売れるから。バルト海の港から西へ輸出した。西では農民が自由になっていくのに、東では逆に縛られた（再版農奴制とも言う）。", "pv"]] },
+  pricerev: { v: [-15, 45, 34, 62], m: [{ n: "セビリャ（銀の入口）", la: 37.4, lo: -6, c: 1, p: "r" }, { n: "西ヨーロッパ", la: 48, lo: 3, a: 6 }],
+    s: [["何が起きた？", "16世紀のあいだに、物価が数倍になった。"],
+        ["原因は？", "①アメリカ大陸の銀が大量に入った（お金が増えた）②人口が増えた（買う人が増えた）。どちらか一つではない。", "pv"],
+        ["だれが得して、だれが損？", "物を作って売る商工業者は有利。決まった地代で暮らす領主は苦しい。", "nx"]] },
+  ming: { v: [60, 150, -10, 48], m: [{ n: "明（都は北京）", la: 34, lo: 112, a: 7 }, { n: "マニラ", la: 14.6, lo: 121, c: 1, p: "r" }, { n: "カリカット", la: 11.25, lo: 75.8, c: 1, p: "l" }],
+    r: ["pacific2", "toMing"],
+    s: [["どうやって明へ？", "①ヨーロッパから東回りで ②メキシコのアカプルコからマニラへ（太平洋を渡るスペインの船）。", "pv"],
+        ["なぜ明へ流れた？", "ヨーロッパの人がほしい絹や陶磁器の代金に、銀を使ったから。"],
+        ["明では？", "明は皇帝が治める国。いろいろな税と労役を、銀でまとめて納める「一条鞭法」が広がった。"]] },
+  world: { v: [-110, 150, -45, 62], m: [{ n: "ヨーロッパ", la: 50, lo: 10, a: 8 }, { n: "アメリカ", la: 5, lo: -72, a: 12 }, { n: "アジア", la: 30, lo: 105, a: 12 }],
+    r: ["toEurope", "pacific", "pacific2", "gama"],
+    s: [["何と何がつながった？", "ヨーロッパ・アメリカ・アジアが、海の道と銀で。"],
+        ["例えば？", "ボリビアの銀山の出来事が、ヨーロッパの物価も、明の税のしくみも変えた。", "pv"],
+        ["名前は？", "世界の一体化（世界が一つの経済でつながり始めた）。"]] }
+};
+// 問題ごとに見せる星（用語＝その用語の星／矢印＝出発の星／ほか＝用語がのっている星）
+function assocFor(id) {
+  const k = kindOf(id);
+  if (k === "term") { const t = +id.slice(1); return { nodes: [termNode[t]], key: termNode[t], maskT: [t] }; }
+  if (k === "edge") return null; // renderEdge が向きを決めてから作る
+  const q = qById[id];
+  const key = q.nodes.find(n => nodeById[n].terms.some(t => q.terms.includes(t))) || q.nodes[0];
+  return { nodes: q.nodes, key, maskT: [] };
+}
+function assocPanel(o) {
+  // o: {nodes, key, maskT:[用語番号], hide:"nx"|"pv"|null, open:bool, titleId}
+  let cur = o.key, shown = 0, all = !!o.open;
+  const masks = o.maskT.flatMap(t => [TERMS[t], TERMS[t].replace(/\(.*?\)/g, ""), ...TI[t].a]).filter(Boolean).sort((a, b) => b.length - a.length);
+  const mask = (s) => { if (all) return s; for (const m of masks) s = s.split(m).join("□□"); return s; };
+  const box = el("section", { class: "assoc", "aria-label": "連想の糸" });
+  const chips = el("div", { class: "as-chips" });
+  const mapHost = el("div", {}), list = el("ol", { class: "as-steps" });
+  const more = el("button", { class: "btn sm as-more", type: "button" });
+  more.addEventListener("click", () => { shown++; draw(true); });
+  const draw = (focusNew) => {
+    const a = ASSOC[cur];
+    chips.textContent = "";
+    if (o.nodes.length > 1) for (const n of o.nodes) if (ASSOC[n]) chips.append(el("button", { class: "seg", type: "button", "aria-pressed": n === cur ? "true" : "false", text: NAME(n), onclick: () => { cur = n; shown = 0; draw(); } }));
+    mapHost.textContent = "";
+    const am = assocMap(a, (t) => !all && o.maskT.includes(t)), sc = el("div", { class: "amap-scroll" }, am);
+    mapHost.append(sc);
+    // 狭い画面では地図の幅を保って横に動かす。最初は印の集まっている所へ寄せる
+    requestAnimationFrame(() => { if (sc.scrollWidth > sc.clientWidth) { const xs = a.m.map(k => (k.lo - a.v[0]) / (a.v[1] - a.v[0])); sc.scrollLeft = Math.max(0, xs.reduce((p, q) => p + q, 0) / xs.length * sc.scrollWidth - sc.clientWidth / 2); } });
+    const steps = a.s.filter(s => all || !o.hide || s[2] !== o.hide);
+    list.textContent = "";
+    const n = all ? steps.length : Math.min(shown, steps.length);
+    steps.slice(0, n).forEach((s, i) => list.append(el("li", { class: i === n - 1 && focusNew ? "new" : "", tabindex: "-1" }, el("b", { text: mask(s[0]) }), el("span", { text: mask(s[1]) }))));
+    more.hidden = n >= steps.length;
+    more.textContent = n === 0 ? `連想の糸をたぐる（${steps.length}つ）` : `次の糸（${n + 1} / ${steps.length}）`;
+    if (focusNew && list.lastElementChild) list.lastElementChild.focus({ preventScroll: false });
+  };
+  box.append(el("div", { class: "as-head" }, el("span", { class: "as-t hand", text: "連想の糸" }), chips), mapHost, list, more);
+  box.revealAll = () => { all = true; draw(); };
+  draw();
+  return box;
+}
+function assocMap(a, masked) {
+  const [W, E, S, N] = a.v, w = E - W, h = N - S;
+  const P = (la, lo) => [(lo - W) / w * 100, (N - la) / h * 100];
+  const m = el("div", { class: "amap", style: `aspect-ratio:${w}/${h}` },
+    el("img", { src: MAP_SRC, alt: "", style: `width:${260 / w * 100}%;left:${-(W + 110) / w * 100}%;top:${-(62 - N) / h * 100}%` }));
+  const s = sv("svg", { viewBox: `0 0 ${w} ${h}`, preserveAspectRatio: "none", "aria-hidden": "true" });
+  const line = (pts, cls) => s.append(sv("polyline", { class: "aline " + (cls || ""), points: pts.map(([la, lo]) => `${lo - W},${N - la}`).join(" ") }));
+  for (const r of a.r || []) line(ROUTES[r], "route2");
+  for (const l of a.l || []) line(l.pts, l.cls);
+  for (const k of a.m) if (k.a) s.append(sv("ellipse", { class: "aarea", cx: k.lo - W, cy: N - k.la, rx: k.a, ry: k.a }));
+  m.append(s);
+  const names = [];
+  for (const k of a.m) {
+    const [x, y] = P(k.la, k.lo), hide = k.t && masked(k.t);
+    if (k.c) m.append(el("span", { class: "adot", style: `left:${x}%;top:${y}%`, "aria-hidden": "true" }));
+    m.append(el("span", { class: "alb " + (k.w ? "w " : k.a ? "a " : "p-" + (k.p || "r") + " ") + (hide ? "q" : ""), style: `left:${x}%;top:${y}%`, "aria-hidden": "true", text: hide ? "？" : k.n }));
+    names.push(hide ? "伏せた場所" : k.n);
+  }
+  for (const l of a.l || []) if (l.n) { const p = l.pts[l.i ?? Math.floor(l.pts.length / 2)], [x, y] = P(p[0], p[1]); m.append(el("span", { class: "alb ln" + (l.p === "l" ? " p-l" : ""), style: `left:${x}%;top:${y}%`, "aria-hidden": "true", text: l.n })); names.push(l.n); }
+  m.setAttribute("role", "img"); m.setAttribute("aria-label", "地図：" + names.join("、"));
+  // 札を枠の内側に寄せ、重なった札は上下にずらす（幅が変わるたびにやり直す）
+  const fit = () => {
+    if (!m.isConnected) return;
+    const cr = m.getBoundingClientRect(), placed = [];
+    for (const lb of m.querySelectorAll(".alb")) {
+      lb.style.translate = "";
+      const r = lb.getBoundingClientRect();
+      let dx = Math.max(0, cr.left + 3 - r.left) - Math.max(0, r.right - (cr.right - 3));
+      let dy = Math.max(0, cr.top + 3 - r.top) - Math.max(0, r.bottom - (cr.bottom - 3));
+      let box = { l: r.left + dx, r: r.right + dx, t: r.top + dy, b: r.bottom + dy };
+      for (let k = 0; k < 6; k++) {
+        const hit = placed.find(p => box.l < p.r && box.r > p.l && box.t < p.b && box.b > p.t);
+        if (!hit) break;
+        const down = hit.b - box.t + 2, up = box.b - hit.t + 2;
+        const sh = (box.b + down < cr.bottom - 3) ? down : -up;
+        dy += sh; box = { l: box.l, r: box.r, t: box.t + sh, b: box.b + sh };
+      }
+      lb.style.translate = `${dx}px ${dy}px`;
+      placed.push(box);
+    }
+  };
+  const ro = new ResizeObserver(() => requestAnimationFrame(fit)); ro.observe(m);
+  return m;
+}
+
+// ═══════════ 画面の切り替え ═══════════
+const app = $("#app");
+let session = null, selNode = null;
+function show(view) {
+  hideFB(true);
+  app.textContent = "";
+  app.append(view);
+  view.classList.add("view");
+  window.scrollTo(0, 0);
+}
+
+// ═══════════ 入口 ═══════════
+function renderHome(focusSel) {
+  const learned = termIds.filter(t => termLevel(t) === "done").length;
+  const due = dueCount(), unseen = unseenCount();
+  const sub = due ? `復習の時期が来た問題が ${due} 問あります。` : unseen ? `まだ解いていない問題が ${unseen} 問あります。` : "全部の問題に一度は答えました。間をあけて、もう一度。";
+  const top = el("header", { class: "top" }, el("div", { class: "wrap" },
+    el("div", {},
+      el("span", { class: "eyebrow", html: I.star + "<span>世界史・大航海時代　用語23語</span>" }),
+      el("h1", {}, el("span", { class: "ln", text: "大航海の" }), el("span", { class: "ln", text: "因果マップ" })),
+      el("p", { class: "lead", text: "用語を一つずつではなく、「なぜ」と「その結果」の矢印ごと覚えます。答えるたびに、星座の星が明るくなります。" })),
+    el("section", { class: "today", "aria-labelledby": "today-h" },
+      el("h2", { id: "today-h", text: "今日の12問" }),
+      el("p", { class: "sub", text: sub }),
+      el("div", { class: "meter" }, el("span", { class: "num", text: String(learned) }), el("span", { class: "of", text: `/ 23語　書いて思い出せた用語` })),
+      el("div", { class: "dots", "aria-hidden": "true" }, termIds.map(t => el("i", { class: termLevel(t), title: TERMS[t] }))),
+      el("button", { class: "btn main", type: "button", onclick: () => startSession(buildDaily(), "今日の12問"), html: "<span>はじめる</span>" + I.go }))));
+
+  const chart = el("section", { class: "chart", "aria-labelledby": "chart-h" }, el("div", { class: "wrap" },
+    el("div", { class: "chart-head" },
+      el("div", {}, el("h2", { id: "chart-h", text: "因果の星座" }), el("p", { text: "星（出来事）を押すと、原因と結果の矢印だけが光ります。" })),
+      legendStars()),
+    el("div", { class: "sky-scroll", id: "sky-scroll", tabindex: "-1" }, skyChart()),
+    el("p", { class: "pan-hint", text: "星座は横に動かせます。" }),
+    legendEdges(),
+    el("div", { id: "detail-host" })));
+
+  const shelf = el("section", { class: "shelf", "aria-labelledby": "shelf-h" }, el("div", { class: "wrap" },
+    el("h2", { id: "shelf-h", text: "ひとつずつ練習" }),
+    el("p", { text: "苦手な形だけを続けて解けます。復習の時期が来た問題から出ます。" }),
+    el("div", { class: "shelf-grid" }, Object.entries(KINDS).map(([k, v]) => {
+      const ids = byKind(k), good = ids.filter(id => { const r = rec(id); return r && r.box >= 2; }).length;
+      return el("button", { class: "shelf-item", type: "button", "aria-label": `${v.t}。${v.d}。${ids.length}問中${good}問できています`, onclick: () => startSession(pickBy(ids, v.n), v.t) },
+        el("span", { class: "t", text: v.t }), el("span", { class: "d", text: v.d }),
+        el("span", { class: "p", "aria-hidden": "true" }, el("span", { class: "num", text: String(good) }), `/ ${ids.length}`),
+        el("span", { class: "bar", "aria-hidden": "true" }, el("i", { style: `width:${Math.round(good / ids.length * 100)}%` })));
+    }))));
+
+  const more = el("section", { class: "more", "aria-label": "その他" }, el("div", { class: "wrap" },
+    el("details", {}, el("summary", { class: "disc", text: "用語表（23語）" }), termTable()),
+    el("details", {}, el("summary", { class: "disc", text: "設定と記録" }), settings()),
+    el("p", { class: "foot", text: "問題と説明は授業の台本と5W2H早見表の事実から作っています。「連想の糸」の国・人物・場所の補足は、教科書の範囲で連想の手がかりとして足したものです。記録はこの端末のブラウザにだけ残ります。" })));
+
+  const v = el("main", { id: "main" }, top, chart, shelf, more);
+  show(v);
+  document.title = "大航海の因果マップ";
+  const sc = $("#sky-scroll");
+  requestAnimationFrame(() => {
+    if (selNode) { renderDetail(selNode, focusSel); }
+    else if (sc.scrollWidth > sc.clientWidth) sc.scrollLeft = 0;
+  });
+}
+function legendStars() {
+  const mk = (m, t) => el("span", {}, el("span", { html: starSVG(m), style: "width:20px;height:20px;display:inline-block", "aria-hidden": "true" }), t);
+  return el("div", { class: "legend", style: "margin:0" }, mk("none", "まだ"), mk("mid", "練習中"), mk("done", "覚えた"));
+}
+function legendEdges() {
+  const items = [["cause", "原因・結果", ""], ["part", "原因の一部", "2 5"], ["cond", "条件（可能にした）", "8 6"], ["adjust", "対立→調整", "12 4 2 4"]];
+  return el("div", { class: "legend", "aria-label": "線の見方" }, items.map(([t, l, d]) => el("span", {},
+    el("span", { "aria-hidden": "true", style: "display:inline-flex", html: '<svg width="40" height="10" viewBox="0 0 40 10"><line x1="2" y1="5" x2="38" y2="5" stroke="var(--e-' + t + ')" stroke-width="2.4" stroke-linecap="round"' + (d ? ' stroke-dasharray="' + d + '"' : "") + '/></svg>' }), l)));
+}
+function starSVG(m) {
+  // 星のかたち：まだ=輪郭だけ／練習中=黄の点／覚えた=紫の光＋光条
+  return '<svg class="st" viewBox="0 0 26 26" aria-hidden="true" focusable="false">' +
+    '<circle class="halo" cx="13" cy="13" r="10.5" fill="none" stroke-width="1"/>' +
+    (m === "done" ? '<path class="ray" d="M13 1.5v4M13 20.5v4M1.5 13h4M20.5 13h4"/>' : "") +
+    `<circle class="core" cx="13" cy="13" r="${m === "none" ? 5 : m === "mid" ? 5.5 : 6.5}" stroke-width="1.6" style="fill:${m === "none" ? "none" : m === "mid" ? "var(--star-mid)" : "var(--star-on)"};stroke:${m === "none" ? "var(--star-off)" : m === "mid" ? "var(--star-mid)" : "var(--star-on)"}"/></svg>`;
+}
+
+// ── 星座図 ──
+const NW = 172, NH = 62, COLX = (c) => 16 + c * 196, ROWY = (y) => 50 + y * 88;
+const SKY_W = 1192, SKY_H = 688;
+let bgStars = null;
+function skyChart() {
+  const sky = el("div", { class: "sky" + (selNode ? " has-sel" : ""), role: "group", "aria-label": "大航海時代の因果の星座。出来事を押すと、原因と結果が下に出ます" });
+  const s = sv("svg", { viewBox: `0 0 ${SKY_W} ${SKY_H}`, "aria-hidden": "true" });
+  const defs = sv("defs");
+  for (const t of ["cause", "part", "cond", "adjust"]) defs.append(sv("marker", { id: "ah-" + t, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 9, markerHeight: 9, markerUnits: "userSpaceOnUse", orient: "auto-start-reverse" }, sv("path", { d: "M0,0 L10,5 L0,10 z", style: `fill:var(--e-${t})` })));
+  s.append(defs);
+  // 背景の星（場所は一度だけ決める。瞬くのは一部だけ）
+  if (!bgStars) { bgStars = []; for (let i = 0; i < 70; i++) bgStars.push([Math.random() * SKY_W, Math.random() * SKY_H, Math.random() * 1.3 + .4, Math.random() < .3, (Math.random() * 6).toFixed(2)]); }
+  for (const [x, y, r, tw, d] of bgStars) s.append(sv("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), class: "bgstar" + (tw ? " tw" : ""), style: tw ? `animation-delay:-${d}s` : null }));
+  const pos = (id) => { const n = nodeById[id]; return { x: COLX(n.col), y: ROWY(n.y) }; };
+  for (const e of EDGES) {
+    const a = pos(e.from), b = pos(e.to);
+    let d;
+    if (nodeById[e.from].col === nodeById[e.to].col) {
+      const down = b.y > a.y, x = a.x + 4 + 11;
+      d = `M${x},${down ? a.y + NH / 2 + 12 : a.y + NH / 2 - 12} L${x},${down ? b.y + NH / 2 - 14 : b.y + NH / 2 + 14}`;
+    } else {
+      const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x + 4, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;
+      d = `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+    }
+    const ah = e.type === "pre" || e.type === "result" ? "cause" : e.type;
+    const rel = selNode && (e.from === selNode || e.to === selNode);
+    s.append(sv("path", { d, class: `edge ${e.type}${rel ? " hi" : ""}`, "marker-end": `url(#ah-${ah})` }));
+  }
+  sky.append(s);
+  COLS.forEach((t, i) => sky.append(el("span", { class: "col-lb", style: `left:${COLX(i) + 8}px`, text: t })));
+  for (const n of NODES) {
+    const p = pos(n.id), m = nodeLevel(n.id);
+    const b = el("button", { class: "star-btn", type: "button", "data-m": m, "data-id": n.id, "aria-pressed": selNode === n.id ? "true" : "false",
+      "aria-label": `${NAME(n.id)}（${M_LABEL[m]}）`, style: `left:${p.x}px;top:${p.y}px`, onclick: () => pickNode(n.id) });
+    b.innerHTML = starSVG(m);
+    b.append(el("span", { class: "l1", text: n.label[0] }), el("span", { class: "l2", text: n.label[1] }));
+    if (n.terms.length) b.append(el("span", { class: "tn", "aria-hidden": "true", text: n.terms.map(circled).join("") }));
+    sky.append(b);
+  }
+  return sky;
+}
+function pickNode(id) {
+  selNode = selNode === id ? null : id;
+  const sky = $(".sky");
+  sky.classList.toggle("has-sel", !!selNode);
+  sky.querySelectorAll(".star-btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === selNode ? "true" : "false"));
+  sky.querySelectorAll(".edge").forEach((p, i) => { const e = EDGES[i]; p.classList.toggle("hi", !!selNode && (e.from === selNode || e.to === selNode)); });
+  if (selNode) renderDetail(selNode, false); else $("#detail-host").textContent = "";
+}
+function renderDetail(id, focusIt) {
+  const host = $("#detail-host"); host.textContent = "";
+  const n = nodeById[id], ins = EDGES.filter(e => e.to === id), outs = EDGES.filter(e => e.from === id);
+  const its = itemsOfNode(id);
+  const li = (e, other) => el("li", { class: e.type }, el("span", { class: "ty", text: EDGE_TYPES[e.type] }), el("b", { text: NAME(other) }), el("br"), e.why);
+  const d = el("article", { class: "detail", "aria-labelledby": "detail-h" },
+    el("div", {},
+      el("h3", { id: "detail-h", tabindex: "-1", text: NAME(id) }),
+      el("p", { class: "desc", text: n.desc }),
+      n.terms.length ? el("div", { class: "terms-chips" }, n.terms.map(t => el("span", { class: "chip" }, el("span", { class: "m " + termLevel(t), "aria-hidden": "true" }), `${circled(t)} ${TERMS[t]}`, el("span", { class: "sr", text: `（${M_LABEL[termLevel(t)]}）` })))) : null,
+      ASSOC[id] ? assocPanel({ nodes: [id], key: id, maskT: [], open: true }) : null,
+      el("div", { class: "row", style: "margin-top:var(--f4)" },
+        el("button", { class: "btn", type: "button", onclick: () => startSession(pickBy(its, 10), NAME(id)), html: `<span>この星の問題を解く（${Math.min(10, its.length)}問）</span>` }))),
+    el("div", { class: "links" },
+      el("h4", { text: "原因（矢印の元）" }), ins.length ? el("ul", {}, ins.map(e => li(e, e.from))) : el("p", { class: "muted", style: "font-size:var(--t-min);margin-bottom:var(--f3)", text: "この図の出発点です。" }),
+      el("h4", { text: "その結果（矢印の先）" }), outs.length ? el("ul", {}, outs.map(e => li(e, e.to))) : el("p", { class: "muted", style: "font-size:var(--t-min)", text: "この図の行き着く先です。" })),
+    el("button", { class: "btn sm x", type: "button", "aria-label": "閉じる", html: I.x, onclick: () => { const was = selNode; pickNode(selNode); const b = $(`.star-btn[data-id="${was}"]`); b && b.focus(); } }));
+  host.append(d);
+  if (focusIt) { d.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" }); $("#detail-h").focus({ preventScroll: true }); }
+  else if (window.innerWidth < 860) d.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" });
+}
+function termTable() {
+  return el("div", { class: "tbl-wrap" }, el("table", {},
+    el("thead", {}, el("tr", {}, el("th", { text: "番号" }), el("th", { text: "用語" }), el("th", { text: "手がかり" }), el("th", { text: "いま" }))),
+    el("tbody", {}, termIds.map(t => el("tr", {}, el("td", { text: circled(t) }), el("td", {}, el("b", { text: TERMS[t] })), el("td", { text: TI[t].c }),
+      el("td", {}, el("span", { class: "chip" }, el("span", { class: "m " + termLevel(t), "aria-hidden": "true" }), M_LABEL[termLevel(t)])))))));
+}
+function settings() {
+  const sw = (key, t, d) => el("label", { class: "switch" }, el("span", {}, t, el("span", { class: "d", text: d })),
+    el("input", { type: "checkbox", role: "switch", checked: store.set[key], onchange: (e) => { store.set[key] = e.target.checked; save(); announce(t + "を" + (e.target.checked ? "オン" : "オフ") + "にしました"); } }));
+  const host = el("div", {});
+  const resetBtn = el("button", { class: "btn sm danger", type: "button", text: "記録を消す", onclick: () => {
+    host.textContent = "";
+    const yes = el("button", { class: "btn danger", type: "button", text: "消す", onclick: () => { store.r = {}; store.traps = {}; save(); selNode = null; renderHome(); announce("記録を消しました"); } });
+    host.append(el("div", { class: "confirm", role: "alertdialog", "aria-label": "記録を消す確認" }, el("span", { text: "この端末の答えた記録をすべて消します。元に戻せません。" }), yes,
+      el("button", { class: "btn sm", type: "button", text: "やめる", onclick: () => { host.textContent = ""; resetBtn.focus(); } })));
+    yes.focus();
+  } });
+  const traps = Object.entries(store.traps).sort((a, b) => b[1] - a[1]);
+  return el("div", { class: "settings" },
+    sw("auto", "正解したら自動で次へ", "帯にふれると止まります"),
+    sw("sound", "音と振動", "答えた瞬間に小さく鳴らします"),
+    traps.length ? el("div", {}, el("p", { style: "font-weight:700;margin-top:var(--f2)", text: "これまでに引っかかった理屈のわな" }), el("div", { class: "traps" }, traps.map(([k, n]) => el("span", { class: "chip", text: `${TRAPS[k] || k}　${n}回` })))) : null,
+    el("div", { class: "row" }, resetBtn), host);
+}
+
+// ═══════════ 出題 ═══════════
+function startSession(ids, title) {
+  if (!ids.length) return;
+  session = { ids, i: 0, title, res: [] };
+  renderPlay();
+}
+function renderPlay() {
+  const s = session;
+  const steps = el("div", { class: "steps", "aria-hidden": "true" }, s.ids.map((id, k) => el("i", { class: k < s.res.length ? (s.res[k].ok ? "ok" : "ng") : k === s.i ? "cur" : "" })));
+  const bar = el("div", { class: "pbar" }, el("div", { class: "wrap" },
+    el("button", { class: "btn sm x", type: "button", "aria-label": "やめて入口にもどる", html: I.x, onclick: quit }),
+    steps,
+    el("span", { class: "cnt", text: `${s.i + 1} / ${s.ids.length}` })));
+  const stage = el("div", { class: "stage" }, el("div", { class: "wrap", id: "qhost" }));
+  const v = el("main", { class: "play", id: "main" }, bar, stage);
+  show(v);
+  document.title = `${s.i + 1}問目 | ${s.title} | 大航海の因果マップ`;
+  renderQuestion(s.ids[s.i]);
+}
+function quit() {
+  if (session && session.res.length) renderResult(); else { session = null; renderHome(); }
+}
+function qcard(kindLabel, lv) {
+  const c = el("article", { class: "qcard in", "aria-labelledby": "q-prompt" },
+    el("div", { class: "qkind" }, el("span", { class: "k", text: kindLabel }), lv ? el("span", { class: "lv", text: lv }) : null));
+  $("#qhost").append(c);
+  return c;
+}
+const focusPrompt = () => requestAnimationFrame(() => { const p = $("#q-prompt"); p && p.focus({ preventScroll: true }); });
+function renderQuestion(id) {
+  const k = kindOf(id);
+  if (k === "term") renderTerm(+id.slice(1), id);
+  else if (k === "edge") renderEdge(+id.slice(1), id);
+  else if (k === "judge") renderJudge(qById[id]);
+  else if (k === "map") renderMap(qById[id]);
+  else if (k === "chain") renderChain(qById[id]);
+  else renderWhy(qById[id]);
+  focusPrompt();
+}
+// 4択（たんご choice.js と同じ作り：ボタンを role=group で束ね、答えたら aria-disabled・1〜4キー）
+function choices(items, opt) {
+  const g = el("div", { class: "choices" + (opt.cls ? " " + opt.cls : ""), role: "group", "aria-labelledby": opt.labelledby || "q-prompt" });
+  const LET = opt.letters || ["1", "2", "3", "4", "5"];
+  items.forEach((it, i) => {
+    const b = el("button", { class: "choice", type: "button" },
+      el("span", { class: "choice-k", "aria-hidden": "true", text: LET[i] }),
+      el("span", { class: "choice-t" }, it.t, it.d ? el("small", { text: it.d }) : null),
+      el("span", { class: "choice-m", "aria-hidden": "true" }));
+    b.addEventListener("click", () => { if (g.dataset.done) return; opt.onPick(i, b); });
+    g.append(b);
+  });
+  const kh = (e) => {
+    if (!g.isConnected) { document.removeEventListener("keydown", kh); return; }
+    if (g.dataset.done || g.dataset.off || e.altKey || e.ctrlKey || e.metaKey) return;
+    const tg = e.target && e.target.tagName; if (tg === "INPUT" || tg === "TEXTAREA") return;
+    const k = "12345".indexOf(e.key); if (k < 0 || k >= items.length) return;
+    e.preventDefault(); const b = g.querySelectorAll(".choice")[k]; if (b) { b.focus(); b.click(); }
+  };
+  if (!opt.noKeys) document.addEventListener("keydown", kh);
+  return g;
+}
+function grade(g, chosen, cor, trapText) {
+  g.dataset.done = "1";
+  const ok = chosen === cor;
+  g.querySelectorAll(".choice").forEach((b, i) => {
+    b.setAttribute("aria-disabled", "true");
+    if (i === chosen) { b.classList.add(ok ? "correct" : "wrong"); b.querySelector(".choice-m").innerHTML = ok ? I.ok : I.ng; if (!ok && trapText) b.append(el("span", { class: "choice-trap", text: "わな：" + trapText })); }
+    else if (i === cor) { b.classList.add("reveal"); b.append(el("span", { class: "choice-note", text: "正解" })); }
+    else b.classList.add("done");
+  });
+  return ok;
+}
+const kbdHint = (n) => el("p", { class: "kbd-hint" }, "キーボードなら ", el("kbd", { text: "1" }), "〜", el("kbd", { text: String(n) }), " で答え、", el("kbd", { text: "Enter" }), " で次へ進めます。");
+
+// ── 用語：箱1は4択（見て選ぶ）→ 箱2から書いて思い出す ──
+function termDummies(t) {
+  const kind = TI[t].k, n0 = termNode[t];
+  return termIds.filter(x => x !== t).map(x => [(TI[x].k === kind ? 0 : 10) + dist(n0, termNode[x]) + Math.random() * 1.6, x]).sort((a, b) => a[0] - b[0]).slice(0, 3).map(a => a[1]);
+}
+const norm = (s) => String(s).normalize("NFKC").replace(/[\s=・･\-‐()「」]/g, "")
+  .replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60))
+  .replace(/ヴァ/g, "バ").replace(/ヴィ/g, "ビ").replace(/ヴェ/g, "ベ").replace(/ヴォ/g, "ボ").replace(/ヴ/g, "ブ").toLowerCase();
+const accepts = (t) => [TERMS[t], ...TI[t].a, TI[t].r].filter(Boolean).map(norm);
+function renderTerm(t, id) {
+  const r = rec(id), write = r && r.box >= 2;
+  const c = qcard("用語", write ? "書いて思い出す" : "見て選ぶ");
+  c.append(el("p", { class: "prompt", id: "q-prompt", tabindex: "-1" }, write ? "この説明に合う用語を、書いて答えましょう。" : "この説明に合う用語は？"),
+    el("div", { class: "clue" }, TI[t].c, el("span", { class: "hint", text: `種類：${KIND_JA[TI[t].k]}` })),
+    assocPanel(assocFor(id)));
+  const flow = flowAround(termNode[t]);
+  if (!write) {
+    const opts = shuffle([t, ...termDummies(t)]);
+    const g = choices(opts.map(x => ({ t: TERMS[x] })), { onPick: (i) => {
+      const ok = grade(g, i, opts.indexOf(t));
+      answer(id, ok, ok ? null : "fact", { head: ok ? "正解" : "ちがいます", ans: [`${circled(t)} `, el("b", { text: TERMS[t] })], exp: ok ? "次は書いて答える問題になります。" : `「${TERMS[opts[i]]}」は ${KIND_JA[TI[opts[i]].k]}。${TI[opts[i]].c}`, flow });
+    } });
+    c.append(g, kbdHint(4));
+    return;
+  }
+  let hinted = false;
+  const inp = el("input", { id: "recall-in", type: "text", autocomplete: "off", autocapitalize: "off", spellcheck: "false", enterkeyhint: "done", "aria-describedby": "recall-help" });
+  const hintOut = el("span", { class: "hint-out", "aria-live": "polite" });
+  const submit = (giveUp) => {
+    if (c.dataset.done) return;
+    const v = inp.value.trim();
+    if (!v && !giveUp) { inp.setAttribute("aria-invalid", "true"); announce("用語を入れてください"); inp.focus(); return; }
+    c.dataset.done = "1"; inp.readOnly = true; sendB.disabled = true; skipB.disabled = true; hintB.disabled = true;
+    const ok = !giveUp && accepts(t).includes(norm(v));
+    inp.classList.add(ok ? "ok" : "ng");
+    answer(id, ok, ok ? null : "fact", { head: ok ? (hinted ? "正解（ヒントあり）" : "正解") : giveUp ? "答えはこれです" : "ちがいます", ans: [`${circled(t)} `, el("b", { text: TERMS[t] }), !ok && v ? `　（あなたの答え：${v}）` : ""], exp: ok ? (hinted ? "ヒントを使ったので、覚えた印は次の正解まで待ちます。" : "") : "声に出して一度言ってから進みましょう。", flow, soft: hinted });
+  };
+  const sendB = el("button", { class: "btn main", type: "button", text: "答える", onclick: () => submit(false) });
+  const hintB = el("button", { class: "btn sm", type: "button", text: "1文字目を見る", onclick: () => { hinted = true; hintOut.textContent = `1文字目は「${TERMS[t][0]}」`; hintB.disabled = true; inp.focus(); } });
+  const skipB = el("button", { class: "btn text", type: "button", text: "わからない", onclick: () => submit(true) });
+  inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); submit(false); } });
+  inp.addEventListener("input", () => inp.removeAttribute("aria-invalid"));
+  c.append(el("div", { class: "recall" },
+    el("label", { for: "recall-in", text: "用語" }),
+    el("div", { class: "in-row" }, inp, sendB),
+    el("p", { id: "recall-help", class: "muted", style: "font-size:var(--t-min)", text: "ひらがな・カタカナ、どちらでも正解にします（「＝」「・」はなくても大丈夫）。" }),
+    el("div", { class: "tools" }, hintB, skipB, hintOut)));
+  if (!matchMedia("(pointer:coarse)").matches) setTimeout(() => inp.focus({ preventScroll: true }), 260);
+}
+function flowAround(nid) { // その星の前後を一行で
+  const pre = EDGES.find(e => e.to === nid), post = EDGES.find(e => e.from === nid);
+  return [pre ? NAME(pre.from) : null, NAME(nid), post ? NAME(post.to) : null].filter(Boolean);
+}
+
+// ── 矢印をたどる（EDGES から自動で作る。ダミー＝つながっていない近い星。左の列の星は「順番が逆」のわな） ──
+function renderEdge(i, id) {
+  const e = EDGES[i], fwd = Math.random() < .55;
+  const base = fwd ? e.from : e.to, ans = fwd ? e.to : e.from;
+  const linked = new Set(EDGES.filter(x => fwd ? x.from === base : x.to === base).map(x => fwd ? x.to : x.from));
+  const baseCol = nodeById[base].col, ansCol = nodeById[ans].col;
+  const cands = NODES.filter(n => n.id !== base && !linked.has(n.id)).map(n => [Math.abs(n.col - ansCol) + Math.random() * 1.8, n.id]).sort((a, b) => a[0] - b[0]).map(a => a[1]);
+  const dums = cands.slice(0, 3);
+  const trapOf = (nid) => (fwd ? nodeById[nid].col < baseCol : nodeById[nid].col > baseCol) ? "order" : "unrelated";
+  const opts = shuffle([ans, ...dums]);
+  const c = qcard("矢印", fwd ? "たどる（その結果は？）" : "さかのぼる（原因は？）");
+  c.append(el("p", { class: "prompt", id: "q-prompt", tabindex: "-1" }, fwd ? "この出来事から矢印をたどると、その結果として起きたのは？" : "この出来事の原因（矢印の元）になったのは？"),
+    el("div", { class: "clue" }, el("b", { text: NAME(base) }), el("br"), nodeById[base].desc),
+    assocPanel({ nodes: [base], key: base, maskT: nodeById[ans].terms, hide: fwd ? "nx" : "pv" }));
+  const g = choices(opts.map(x => ({ t: NAME(x) })), { onPick: (k) => {
+    const pick = opts[k], ok = pick === ans, trap = ok ? null : trapOf(pick);
+    grade(g, k, opts.indexOf(ans), trap ? TRAPS[trap] : null);
+    answer(id, ok, trap, { head: ok ? "正解" : "ちがいます", ans: [EDGE_TYPES[e.type] + "：", el("b", { text: NAME(e.from) }), " → ", el("b", { text: NAME(e.to) })], exp: e.why, trap, flow: [NAME(e.from), NAME(e.to)] });
+  } });
+  c.append(g, kbdHint(4));
+}
+
+// ── なぜ？・もしも（台本の問題） ──
+function renderWhy(q) {
+  const opts = shuffle(q.opts);
+  const c = qcard(q.mode === "whatif" ? "もしも" : "なぜ？", q.terms.map(circled).join(" "));
+  c.append(el("p", { class: "prompt", id: "q-prompt", tabindex: "-1", text: q.q }), assocPanel(assocFor(q.id)));
+  const g = choices(opts.map(o => ({ t: o.t })), { onPick: (i) => {
+    const o = opts[i], ok = !!o.ok, trap = ok ? null : o.trap;
+    grade(g, i, opts.findIndex(x => x.ok), trap ? TRAPS[trap] : null);
+    answer(q.id, ok, trap, { head: ok ? "正解" : "ちがいます", ans: ok ? null : [el("b", { text: opts.find(x => x.ok).t })], exp: q.exp, trap, flow: q.nodes.map(NAME) });
+  } });
+  c.append(g, kbdHint(opts.length));
+}
+// ── 因果？相関？ ──
+const JUDGE_TRAP = { reverse: "order", partial: "single", coincide: "coincide", common: "coincide", causal: "unrelated" };
+function renderJudge(q) {
+  const c = qcard("因果？相関？", q.terms.map(circled).join(" "));
+  c.append(el("p", { class: "prompt", id: "q-prompt", tabindex: "-1", text: "この文の「つながり」は、どれにあたる？" }), el("p", { class: "statement", text: q.s }), assocPanel(assocFor(q.id)));
+  const g = choices(JUDGE_CHOICES.map(j => ({ t: j.t, d: j.d })), { cls: "judge", onPick: (i) => {
+    const ok = JUDGE_CHOICES[i].v === q.ans, trap = ok ? null : JUDGE_TRAP[q.ans];
+    grade(g, i, JUDGE_CHOICES.findIndex(j => j.v === q.ans));
+    answer(q.id, ok, trap, { head: ok ? "正解" : "ちがいます", ans: ["答え：", el("b", { text: JUDGE_CHOICES.find(j => j.v === q.ans).t })], exp: q.exp, flow: q.nodes.map(NAME) });
+  } });
+  c.append(g, kbdHint(5));
+}
+// ── 地図 ──
+const xy = (lat, lon) => ({ x: (lon + 110) / 260 * 100, y: (62 - lat) / 107 * 100 });
+function renderMap(q) {
+  const keys = Object.keys(PLACES), L = Object.fromEntries(keys.map((k, i) => [k, String.fromCharCode(65 + i)]));
+  const c = qcard("地図", q.terms.map(circled).join(" "));
+  c.append(el("p", { class: "prompt", id: "q-prompt", tabindex: "-1", text: q.q }),
+    el("p", { class: "muted", style: "font-size:var(--t-min)", text: "地図の記号か、下の一覧から選んで「答え合わせ」を押します。" }));
+  const svg = sv("svg", { viewBox: "0 0 260 107", preserveAspectRatio: "none", "aria-hidden": "true" });
+  const map = el("div", { class: "map" }, el("img", { src: MAP_SRC, alt: "" }), svg);
+  const pins = {}; let picked = null;
+  const list = choices(keys.map(k => ({ t: "地点" + L[k], d: PLACE_HINT[k] })), { cls: "place-grid", letters: keys.map(k => L[k]), noKeys: true, labelledby: "q-prompt", onPick: (i) => choose(keys[i]) });
+  const choose = (k) => {
+    picked = k;
+    for (const [kk, b] of Object.entries(pins)) b.setAttribute("aria-pressed", kk === k ? "true" : "false");
+    list.querySelectorAll(".choice").forEach((b, i) => { b.classList.toggle("picked", keys[i] === k); b.setAttribute("aria-pressed", keys[i] === k ? "true" : "false"); });
+    check.disabled = false;
+    announce(`地点${L[k]}をえらびました`);
+  };
+  for (const k of keys) {
+    const p = xy(PLACES[k].lat, PLACES[k].lon);
+    pins[k] = el("button", { class: "pin", type: "button", style: `left:${p.x}%;top:${p.y}%`, "aria-pressed": "false", "aria-label": `地点${L[k]}（${PLACE_HINT[k]}）`, text: L[k], onclick: () => choose(k) });
+    map.append(pins[k]);
+  }
+  const scroller = el("div", { class: "map-scroll" }, map);
+  const check = el("button", { class: "btn main", type: "button", text: "答え合わせ", disabled: true, onclick: () => {
+    if (!picked || c.dataset.done) return;
+    c.dataset.done = "1"; check.parentElement.remove();
+    Object.values(pins).forEach(b => b.disabled = true);
+    const ok = picked === q.ans;
+    pins[q.ans].classList.add("is-correct"); if (!ok) pins[picked].classList.add("is-wrong");
+    grade(list, keys.indexOf(picked), keys.indexOf(q.ans));
+    for (const k of new Set([q.ans, picked])) { const p = xy(PLACES[k].lat, PLACES[k].lon); map.append(el("span", { class: "pin-name", style: `left:${p.x}%;top:${p.y}%`, text: PLACES[k].name })); }
+    for (const r of [].concat(q.route || [])) svg.append(sv("polyline", { class: "route", points: ROUTES[r].map(([la, lo]) => `${lo + 110},${62 - la}`).join(" ") }));
+    const p = xy(PLACES[q.ans].lat, PLACES[q.ans].lon);
+    scroller.scrollTo({ left: Math.max(0, map.clientWidth * p.x / 100 - scroller.clientWidth / 2), behavior: reduced() ? "auto" : "smooth" });
+    c.append(assocPanel(Object.assign(assocFor(q.id), { open: true })));
+    answer(q.id, ok, ok ? null : "fact", { head: ok ? "正解" : "ちがいます", ans: [`地点${L[q.ans]}：`, el("b", { text: PLACES[q.ans].name }), "　黄色い線が、ここから広がった流れです。"], exp: q.exp, flow: q.nodes.map(NAME) });
+  } });
+  c.append(scroller, list, el("div", { class: "check-row" }, check));
+  requestAnimationFrame(() => { scroller.scrollLeft = Math.max(0, map.clientWidth * (120 / 260) - scroller.clientWidth / 2); });
+}
+// ── 鎖をつなぐ：並べ替え（つかんで動かす／上へ下へ／矢印キー）→ 矢印の理由を一つずつ ──
+function renderChain(q) {
+  const c = qcard("鎖をつなぐ", q.title);
+  c.append(el("p", { class: "prompt", id: "q-prompt", tabindex: "-1", text: `「${q.title}」の出来事を、原因から結果の順に並べましょう。` }),
+    el("p", { class: "muted", style: "font-size:var(--t-min)", text: "左のつまみをつかんで動かすか、右の矢印で入れ替えます。上が原因、下が結果。" }));
+  let order = shuffle(q.items.map((t, i) => i));
+  if (order.every((v, i) => v === i)) order.reverse();
+  const list = el("ol", { class: "chain", "aria-labelledby": "q-prompt" });
+  const gap = () => parseFloat(getComputedStyle(list).rowGap) || 8;
+  const flipList = (mutate) => {
+    const before = new Map([...list.children].map(li => [li.dataset.it, li.getBoundingClientRect().top]));
+    mutate();
+    for (const li of list.children) {
+      const b = before.get(li.dataset.it); if (b == null) continue;
+      const d = b - li.getBoundingClientRect().top; if (!d || reduced()) continue;
+      li.style.transition = "none"; li.style.transform = `translateY(${d}px)`;
+      requestAnimationFrame(() => requestAnimationFrame(() => { li.style.transition = "transform 200ms cubic-bezier(.4,0,.2,1)"; li.style.transform = ""; }));
+    }
+  };
+  const draw = () => {
+    list.textContent = "";
+    order.forEach((it, pos) => {
+      const txt = q.items[it];
+      const grip = el("button", { class: "grip", type: "button", "aria-label": `「${txt}」をつかむ（上下の矢印キーでも動かせます）`, html: I.grip });
+      const up = el("button", { class: "btn sm", type: "button", "aria-label": `「${txt}」を上へ`, disabled: pos === 0, html: I.up, onclick: () => move(pos, -1, "up") });
+      const dn = el("button", { class: "btn sm", type: "button", "aria-label": `「${txt}」を下へ`, disabled: pos === order.length - 1, html: I.down, onclick: () => move(pos, 1, "dn") });
+      const li = el("li", { "data-it": String(it) }, grip, el("span", { class: "no", "aria-hidden": "true", text: String(pos + 1) }), el("span", { class: "t", text: txt }), el("span", { class: "mv" }, up, dn));
+      grip.addEventListener("keydown", (e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); move(order.indexOf(it), e.key === "ArrowUp" ? -1 : 1, "grip"); } });
+      grip.addEventListener("pointerdown", (e) => startDrag(e, li, grip));
+      list.append(li);
+    });
+  };
+  const move = (pos, d, which) => {
+    const np = pos + d; if (np < 0 || np >= order.length) return;
+    const it = order[pos];
+    flipList(() => { [order[pos], order[np]] = [order[np], order[pos]]; draw(); });
+    const li = list.querySelector(`li[data-it="${it}"]`);
+    const f = which === "grip" ? li.querySelector(".grip") : li.querySelectorAll(".mv .btn")[which === "up" ? 0 : 1];
+    (f && !f.disabled ? f : li.querySelector(".grip")).focus();
+    announce(`「${q.items[it]}」を${np + 1}番目にしました`);
+  };
+  function startDrag(e, li, grip) {
+    if (e.button > 0 || c.dataset.locked) return;
+    e.preventDefault();
+    try { grip.setPointerCapture(e.pointerId); } catch (x) {}
+    let lastY = e.clientY, off = 0;
+    li.classList.add("drag");
+    const flipOne = (n, mutate) => { const b = n.getBoundingClientRect().top; mutate(); const d = b - n.getBoundingClientRect().top; if (!d || reduced()) return; n.style.transition = "none"; n.style.transform = `translateY(${d}px)`; requestAnimationFrame(() => requestAnimationFrame(() => { n.style.transition = "transform 180ms cubic-bezier(.4,0,.2,1)"; n.style.transform = ""; })); };
+    const mv = (ev) => {
+      off += ev.clientY - lastY; lastY = ev.clientY;
+      const nx = li.nextElementSibling, pv = li.previousElementSibling;
+      if (nx && off > nx.offsetHeight / 2 + 4) { const h = nx.offsetHeight + gap(); flipOne(nx, () => list.insertBefore(nx, li)); off -= h; }
+      else if (pv && off < -(pv.offsetHeight / 2 + 4)) { const h = pv.offsetHeight + gap(); flipOne(pv, () => list.insertBefore(li, pv)); off += h; }
+      li.style.transform = `translateY(${off}px)`;
+    };
+    const end = () => {
+      grip.removeEventListener("pointermove", mv); grip.removeEventListener("pointerup", end); grip.removeEventListener("pointercancel", end);
+      const it = li.dataset.it;
+      order = [...list.children].map(x => +x.dataset.it);
+      li.style.transition = "transform 200ms cubic-bezier(.34,1.56,.64,1)"; li.style.transform = "";
+      setTimeout(() => { draw(); const g = list.querySelector(`li[data-it="${it}"] .grip`); g && g.focus({ preventScroll: true }); }, 200);
+      li.classList.remove("drag");
+      try { navigator.vibrate && store.set.sound && navigator.vibrate(8); } catch (x) {}
+      announce(`「${q.items[+it]}」を${order.indexOf(+it) + 1}番目にしました`);
+    };
+    grip.addEventListener("pointermove", mv); grip.addEventListener("pointerup", end); grip.addEventListener("pointercancel", end);
+  }
+  draw();
+  const check = el("button", { class: "btn main", type: "button", text: "順番を確かめる" });
+  const row = el("div", { class: "check-row" }, check);
+  c.append(list, row, assocPanel(assocFor(q.id)));
+  check.addEventListener("click", () => {
+    c.dataset.locked = "1"; row.remove();
+    const orderOk = order.every((v, i) => v === i);
+    list.classList.add("locked");
+    list.querySelectorAll("li").forEach((li, pos) => li.classList.add(order[pos] === pos ? "is-correct" : "is-wrong"));
+    // まちがえた行を赤い枠で見せてから（0.9秒）、正しい順へ並べ直す
+    if (!orderOk) setTimeout(() => flipList(() => { order = q.items.map((t, i) => i); draw(); list.querySelectorAll("li").forEach(li => li.classList.add("is-correct")); }), 900);
+    const note = el("p", { class: "fb-h", tabindex: "-1", style: `margin-top:var(--f3);font-size:1.0625rem;color:${orderOk ? "var(--good)" : "var(--bad)"}`, text: orderOk ? "順番は正しいです。次は矢印の理由。" : "順番がちがう所がありました。正しい順に並べ直しました。次は矢印の理由。" });
+    c.append(note); note.focus({ preventScroll: true }); feel(orderOk);
+    let k = 0, nOk = 0;
+    const ask = () => {
+      const lk = q.links[k], opts = shuffle(lk.opts.map((t, i) => ({ t, i })));
+      const hid = `lk-${q.id}-${k}`;
+      const box = el("div", { class: "linkq" }, el("p", { class: "lk", id: hid, tabindex: "-1" }, `矢印${k + 1}　「${q.items[k]}」`, el("span", { class: "arr", text: "→" }), `「${q.items[k + 1]}」　なぜつながる？`));
+      const g = choices(opts.map(o => ({ t: o.t })), { labelledby: hid, onPick: (i) => {
+        const ok = grade(g, i, opts.findIndex(o => o.i === lk.ok)); if (ok) nOk++; feel(ok);
+        k++;
+        if (k < q.links.length) setTimeout(ask, 380);
+        else {
+          const all = orderOk && nOk === q.links.length;
+          answer(q.id, all, all ? null : (orderOk ? "unrelated" : "order"), { head: all ? "鎖がすべてつながりました" : `順番 ${orderOk ? "○" : "×"}・矢印の理由 ${nOk} / ${q.links.length}`, ans: null, exp: "声に出して：" + q.items.join(" → だから → "), flow: q.nodes.map(NAME), noFeel: true });
+        }
+      } });
+      box.append(g); c.append(box);
+      requestAnimationFrame(() => { box.scrollIntoView({ block: "nearest", behavior: reduced() ? "auto" : "smooth" }); $("#" + hid).focus({ preventScroll: true }); });
+    };
+    setTimeout(ask, orderOk ? 420 : 1300);
+  });
+}
+
+// ═══════════ 答え合わせの帯 ═══════════
+let fbTimer = 0;
+function answer(id, ok, trap, info) {
+  record(id, ok, trap, info.soft);
+  session.res.push({ id, ok, trap });
+  if (!info.noFeel) feel(ok);
+  document.querySelectorAll("#qhost .assoc").forEach(p => p.revealAll && p.revealAll());
+  const st = document.querySelectorAll(".steps i");
+  if (st[session.i]) st[session.i].className = ok ? "ok" : "ng";
+  showFB(ok, info);
+}
+function showFB(ok, info) {
+  const fb = $("#fb");
+  clearTimeout(fbTimer);
+  const last = session.i === session.ids.length - 1;
+  const go = el("button", { class: "btn main", type: "button", onclick: next, html: `<span>${last ? "結果を見る" : "つぎへ"}</span>` + I.go });
+  const auto = ok && store.set.auto && !last && !reduced();
+  fb.className = "tgfb " + (ok ? "ok" : "ng") + (auto ? " auto" : "");
+  fb.textContent = "";
+  const sp = el("span", { class: "spark", "aria-hidden": "true" });
+  if (ok && !reduced()) for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; sp.append(el("i", { style: `--dx:${Math.cos(a) * 28}px;--dy:${Math.sin(a) * 28}px` })); }
+  const flow = info.flow && info.flow.length > 1 ? el("div", { class: "fb-flow", "aria-label": "つながり：" + info.flow.join("、そして") }, info.flow.map((t, i) => [i ? el("span", { class: "a", "aria-hidden": "true", text: "→" }) : null, el("span", { class: "n", text: t })])) : null;
+  fb.append(el("span", { class: "fb-t", "aria-hidden": "true" }), el("div", { class: "fb-in", style: "position:relative" }, sp,
+    el("span", { class: "fb-mk", "aria-hidden": "true", html: ok ? I.ok : I.ng }),
+    el("p", { class: "fb-h", id: "fb-h", text: info.head }),
+    el("p", { class: "fb-a" }, info.ans || ""),
+    info.exp || info.trap ? el("p", { class: "fb-x" }, info.trap ? el("span", { class: "trap", text: "引っかかったわな：" + (TRAPS[info.trap] || info.trap) }) : null, info.exp || "") : null,
+    flow,
+    document.querySelector("#qhost .assoc") ? el("p", { class: "fb-x muted", text: "問題の「連想の糸」を全部ひらきました。地図とあわせて読んでから進みましょう。" }) : null,
+    el("div", { class: "fb-go" }, go)));
+  fb.style.setProperty("--fb-wait", "1600ms");
+  requestAnimationFrame(() => { fb.classList.add("on"); go.focus({ preventScroll: true }); });
+  announce(info.head + "。" + (fb.querySelector(".fb-a").textContent || ""));
+  if (auto) {
+    fbTimer = setTimeout(next, 1600);
+    const pause = () => { if (!fb.classList.contains("paused")) { clearTimeout(fbTimer); fb.classList.add("paused"); } };
+    fb.addEventListener("pointerdown", pause, { once: true });
+    fb.addEventListener("wheel", pause, { once: true, passive: true });
+  }
+}
+function hideFB(now) {
+  clearTimeout(fbTimer);
+  const fb = $("#fb"); if (!fb) return;
+  fb.classList.remove("on", "paused");
+  if (now) fb.textContent = "";
+}
+function next() {
+  if (!session) return;
+  clearTimeout(fbTimer);
+  hideFB(false);
+  session.i++;
+  if (session.i >= session.ids.length) { renderResult(); return; }
+  const host = $("#qhost"); host.textContent = "";
+  const st = document.querySelectorAll(".steps i"); if (st[session.i]) st[session.i].className = "cur";
+  const cnt = $(".pbar .cnt"); if (cnt) cnt.textContent = `${session.i + 1} / ${session.ids.length}`;
+  document.title = `${session.i + 1}問目 | ${session.title} | 大航海の因果マップ`;
+  window.scrollTo(0, 0);
+  renderQuestion(session.ids[session.i]);
+}
+
+// ═══════════ 結果（世界観を開放：星座が3秒かけて灯る） ═══════════
+const KIND_SHORT = { term: "用語", edge: "矢印", why: "なぜ？", judge: "因果？", map: "地図", chain: "鎖" };
+function itemTitle(id) {
+  const k = kindOf(id);
+  if (k === "term") { const t = +id.slice(1); return `${circled(t)} ${TERMS[t]}`; }
+  if (k === "edge") { const e = EDGES[+id.slice(1)]; return `${NAME(e.from)} → ${NAME(e.to)}`; }
+  const q = qById[id];
+  return q.q || q.s || q.title;
+}
+function renderResult() {
+  const s = session; session = null;
+  const n = s.res.length, ok = s.res.filter(r => r.ok).length, wrong = s.res.filter(r => !r.ok).map(r => r.id);
+  // 星座：答えた問題にかかわる星だけを灯す（全部正解の星＝紫・まちがいが混じる星＝赤い輪）
+  const st = {};
+  for (const r of s.res) for (const nid of nodesOf(r.id)) st[nid] = (st[nid] ?? true) && r.ok;
+  const ids = Object.keys(st).sort((a, b) => (nodeById[a].col - nodeById[b].col) || (nodeById[a].y - nodeById[b].y));
+  const per = ids.length > 1 ? 2400 / (ids.length - 1) : 0, delay = Object.fromEntries(ids.map((id, i) => [id, Math.round(i * per)]));
+  const P = (id) => ({ x: COLX(nodeById[id].col) + 15, y: ROWY(nodeById[id].y) + 31 });
+  const s2 = sv("svg", { viewBox: `0 0 ${SKY_W} ${SKY_H}`, role: "img", "aria-label": `今回かかわった星 ${ids.length}個。すべて正解だった星は ${ids.filter(i => st[i]).length}個` });
+  for (const [x, y, r] of (bgStars || [])) s2.append(sv("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(2), class: "bgstar" }));
+  for (const e of EDGES) {
+    if (!(e.from in st) || !(e.to in st)) continue;
+    const a = P(e.from), b = P(e.to), len = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y));
+    s2.append(sv("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: "ln", style: `--len:${len};animation-delay:${Math.max(delay[e.from], delay[e.to]) + 300}ms` }));
+  }
+  for (const id of ids) {
+    const p = P(id);
+    s2.append(sv("g", { class: "rs " + (st[id] ? "ok" : "ng"), style: `animation-delay:${delay[id]}ms` },
+      sv("circle", { cx: p.x, cy: p.y, r: 13 }),
+      sv("text", { x: p.x + 22, y: p.y + 9 }, nodeById[id].label[0].replace(/[・が]$/, ""))));
+  }
+  const trapCount = {}; for (const r of s.res) if (r.trap) trapCount[r.trap] = (trapCount[r.trap] || 0) + 1;
+  const scoreN = el("span", { class: "num", text: reduced() ? String(ok) : "0" });
+  const line = ok === n ? "全部の鎖がつながりました。" : ok / n >= .7 ? "あと少し。まちがえた矢印だけ、もう一度たどりましょう。" : "まちがえた所は、明日もう一度出ます。今日はもう一回だけ。";
+  const learned = termIds.filter(t => termLevel(t) === "done").length;
+  const main = wrong.length
+    ? el("button", { class: "btn main", type: "button", onclick: () => startSession(shuffle(wrong), "まちがえた問題"), html: `<span>まちがえた${wrong.length}問をもう一度</span>` + I.go })
+    : el("button", { class: "btn main", type: "button", onclick: () => startSession(buildDaily(), "今日の12問"), html: "<span>つづけて12問</span>" + I.go });
+  const v = el("main", { class: "result", id: "main" }, el("div", { class: "wrap" },
+    el("section", { class: "receipt", "aria-labelledby": "res-h" }, crops(),
+      el("h2", { id: "res-h", tabindex: "-1", text: s.title + "　の結果" }),
+      el("div", { class: "score" }, scoreN, el("span", { class: "of", text: `/ ${n} 問正解` })),
+      el("p", { class: "res-line", text: line }),
+      ok === n ? el("span", { class: "stamp on", "aria-hidden": "true", text: "全問正解" }) : null,
+      el("div", { class: "res-sky" }, s2, el("span", { class: "cap", text: "今回たどった星" })),
+      el("p", { class: "muted", style: "font-size:var(--t-min)", text: `書いて思い出せた用語：${learned} / 23語` }),
+      Object.keys(trapCount).length ? el("div", {}, el("p", { style: "font-weight:700;margin-top:var(--f3)", text: "引っかかった理屈のわな" }), el("div", { class: "traps" }, Object.entries(trapCount).map(([k, c]) => el("span", { class: "chip", text: `${TRAPS[k] || k}　${c}` })))) : null,
+      el("ul", { class: "res-list", "aria-label": "問題ごとの結果" }, s.res.map(r => el("li", {},
+        el("span", { class: "mk " + (r.ok ? "ok" : "ng"), html: r.ok ? I.ok : I.ng }),
+        el("span", {}, el("span", { class: "sr", text: r.ok ? "正解：" : "まちがい：" }), itemTitle(r.id)),
+        el("span", { class: "kd", text: KIND_SHORT[kindOf(r.id)] })))),
+      el("div", { class: "res-actions" }, main, el("button", { class: "btn", type: "button", text: "星座にもどる", onclick: () => renderHome() })))));
+  show(v);
+  document.title = `結果 ${ok}/${n} | 大航海の因果マップ`;
+  requestAnimationFrame(() => $("#res-h").focus({ preventScroll: true }));
+  announce(`${n}問中${ok}問正解。${line}`);
+  // [motion:count] CELEBRATION trigger:結果を開く / total:1200ms / peak:終わり / easing:ease-out(3乗) / cleanup:最後に正しい数字で止まる
+  if (!reduced() && ok > 0) { const t0 = performance.now(); const tick = (t) => { const p = Math.min(1, (t - t0) / 1200); scoreN.textContent = String(Math.round(ok * (1 - (1 - p) ** 3))); if (p < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+}
+
+renderHome();
+}
+</script>
+</body>
+</html>
